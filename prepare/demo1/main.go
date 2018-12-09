@@ -8,7 +8,7 @@ import (
 func main() {
 
 	//生成cmd
-	cmd := exec.Command("C:\\cygwin64\\bin\\bash.exe","-c","echo helloworld")
+	cmd := exec.Command("/bin/sh","-c","sleep 3;echo helloworld")
 	//cmd := exec.Command("ping","127.0.0.1")
 	//cmd.Stdout = os.Stdout
 	//cmd.Run()

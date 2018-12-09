@@ -24,7 +24,11 @@ func main() {
 		time.AfterFunc(nextTime.Sub(now), func() {
 			fmt.Println("被调度了",time.Now())
 		})
-		time.Sleep(5 * time.Second)
+	select {
+		case <- time.NewTimer(5*time.Second).C:
+			fmt.Println("定时器到期")
+		}
+		//time.Sleep(5 * time.Second)
 		fmt.Println("主协程退出",time.Now())
 
 }

@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-
+	//执行一个cmd,让它在一个协程里去执行,让它执行2秒,sleep 2;echo hello;
+	//1秒的时候,我们杀死cmd
 	//生成cmd
 	cmd := exec.Command("C:\\cygwin64\\bin\\bash.exe","-c","echo helloworld")
 	//cmd := exec.Command("ping","127.0.0.1")

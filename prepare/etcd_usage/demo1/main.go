@@ -24,7 +24,7 @@ func main() {
 	fmt.Println("链接成功")
 	//用于读写etcd的键值对
 	kv:=clientv3.NewKV(client)
-	putResp,err := kv.Put(context.TODO(),"/cron/jobs/job1","hi0",clientv3.WithPrevKV())
+	putResp,err := kv.Put(context.TODO(),"/cron/jobs/job1","hi1",clientv3.WithPrevKV())
 	if err != nil{
 		fmt.Println(err)
 		return
@@ -45,7 +45,18 @@ func main() {
 			fmt.Println(getResp.Kvs)
 		}
 	}
-
+	kv.Put(context.TODO(),"/cron/jobs/job2","hi2",clientv3.WithPrevKV())
+	kv.Put(context.TODO(),"/cron/jobs/job3","hi3",clientv3.WithPrevKV())
+	kv.Put(context.TODO(),"/cron/jobs/job4","hi4",clientv3.WithPrevKV())
+	//读取/cron/jobs/为前缀的所有key
+	fmt.Println("withPrefix")
+	getResp,err := kv.Get(context.TODO(),"/cron/jobs",clientv3.WithPrefix())
+	if err != nil{
+		fmt.Println(err)
+	}else{
+		//获取成功,遍历所有的Kvs
+		fmt.Println(getResp.Kvs)
+	}
 
 
 

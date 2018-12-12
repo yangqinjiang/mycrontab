@@ -34,6 +34,16 @@ func main() {
 		if putResp.PrevKv !=nil{//put的时候,必须 clientv3.WithPrevKV()
 			fmt.Println("PrevKv",string(putResp.PrevKv.Value))
 		}
+
+		//读取
+		fmt.Println("读取...")
+		getResp ,err := kv.Get(context.TODO(),"/cron/jobs/job1")
+		if err !=nil{
+			fmt.Println(err)
+			return
+		}else{
+			fmt.Println(getResp.Kvs)
+		}
 	}
 
 

@@ -45,6 +45,8 @@ func main() {
 			fmt.Println(getResp.Kvs)
 		}
 	}
+
+	//4
 	kv.Put(context.TODO(),"/cron/jobs/job2","hi2",clientv3.WithPrevKV())
 	kv.Put(context.TODO(),"/cron/jobs/job3","hi3",clientv3.WithPrevKV())
 	kv.Put(context.TODO(),"/cron/jobs/job4","hi4",clientv3.WithPrevKV())
@@ -53,9 +55,27 @@ func main() {
 	getResp,err := kv.Get(context.TODO(),"/cron/jobs",clientv3.WithPrefix())
 	if err != nil{
 		fmt.Println(err)
+		return
 	}else{
 		//获取成功,遍历所有的Kvs
 		fmt.Println(getResp.Kvs)
+	}
+
+
+	//5,删除kv
+	//还有更多删除的选项
+	delResp,err :=kv.Delete(context.TODO(),"/cron/jobs/job1",clientv3.WithPrevKV())
+	//
+	if err != nil{
+		fmt.Println(err)
+		return
+	}else{
+		//被删除之前的PreKv是什么
+		if len(delResp.PrevKvs) != 0{
+			for _,kvpair := range  delResp.PrevKvs{
+				fmt.Println("删除了:",string(kvpair.Key),string(kvpair.Value))
+			}
+		}
 	}
 
 

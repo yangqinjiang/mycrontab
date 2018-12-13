@@ -50,7 +50,7 @@ func main() {
 					if keepAliveChan == nil{
 						fmt.Println("租约已经失效了")
 						goto END
-					}else{
+					}else if keepResp != nil{
 						//每秒会续租一次,所以就会受到一次应答
 						fmt.Println("收到自动续租应答",keepResp.ID)
 					}

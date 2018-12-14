@@ -97,6 +97,31 @@ func handleJobDelete(resp http.ResponseWriter,req *http.Request) {
 		bytes ,_  =common.BuildResponse(-1,err.Error(),nil)
 		resp.Write(bytes)
 }
+
+//列出任务
+func handleJobList(resp http.ResponseWriter,req *http.Request) {
+
+	var(
+		jobList []*common.Job
+		err error
+		bytes []byte
+	)
+	jobList,err = G_jobMgr.ListJobs()
+	if err != nil{
+		goto ERR
+	}
+	//返回正常应答{{"errno":0,"msg":"","data":{...}}}
+	bytes ,err  =common.BuildResponse(0,"success",jobList)
+	if err != nil{
+		goto ERR
+	}
+	resp.Write(bytes)
+	return
+ERR:
+//返回异常应答
+	bytes ,_  =common.BuildResponse(-1,err.Error(),nil)
+	resp.Write(bytes)
+}
 //初始化服务
 func InitApiServer()(err error)  {
 	var (
@@ -107,6 +132,7 @@ func InitApiServer()(err error)  {
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save",handleJobSave)
 	mux.HandleFunc("/job/delete",handleJobDelete)
+	mux.HandleFunc("/job/list",handleJobList)
 
 	//启动TCP监听
 	listener ,err = net.Listen("tcp",":"+strconv.Itoa(G_config.ApiPort))

@@ -108,3 +108,30 @@ func (jobMgr *JobMgr)DeleteJob(name string )(oldJob *common.Job,err error)  {
 	}
 	return
 }
+
+//列出任务
+func (jobMgr *JobMgr)ListJobs()(jobList []*common.Job,err error)  {
+	var (
+		dirkey string
+	)
+	//初始化数组空间
+	jobList = make([]*common.Job,0) //不会返回nil
+	dirkey = common.JOB_SAVE_DIR
+	getResp,err := jobMgr.kv.Get(context.TODO(),dirkey,clientv3.WithPrefix())
+	if err != nil{
+		return jobList, err
+	}
+
+	//成功,foreach,反序列化
+	for _,kvPair := range getResp.Kvs{
+		job := &common.Job{}
+		err := json.Unmarshal(kvPair.Value,job)
+		if err!= nil{
+			continue
+		}
+		jobList = append(jobList,job)
+	}
+
+
+	return jobList,nil
+}

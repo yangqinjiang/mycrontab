@@ -46,11 +46,13 @@ func InitJobMgr()(err error)  {
 }
 
 //保存任务
-func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJobObj common.Job,err error)  {
+func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJob *common.Job,err error)  {
 	//把任务保存到/cron/jobs/任务名 -> json
 	var (
 		jobKey string
 		jobValue []byte
+		oldJobObj common.Job
+		putResp *clientv3.PutResponse
 	)
 
 	//etcd保存的key
@@ -62,7 +64,7 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJobObj common.Job,err error)  
 	}
 	//保存到etcd
 	//返回旧值
-	putResp,err := jobMgr.kv.Put(context.TODO(),jobKey,string(jobValue),clientv3.WithPrevKV())
+	putResp,err = jobMgr.kv.Put(context.TODO(),jobKey,string(jobValue),clientv3.WithPrevKV())
 	if err != nil{
 		return
 	}
@@ -70,11 +72,12 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJobObj common.Job,err error)  
 	//如果是更新,那么返回旧值
 	if putResp.PrevKv != nil{
 		//对旧值反序列化
-		err := json.Unmarshal(putResp.PrevKv.Value,&oldJobObj)
+		err = json.Unmarshal(putResp.PrevKv.Value,&oldJob)
 		if err != nil{
 			err = nil //如果反序列化出错.跳过
 			return
 		}
+		oldJob = &oldJobObj
 	}
 
 	return

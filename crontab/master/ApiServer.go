@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"fmt"
 )
 
 //任务的HTTP接口
@@ -22,12 +23,14 @@ var (
 //保存任务接口
 //保存任务到ETCD
 //post job={"name":"job1",""command:"echo hello","cronExpr":"* * * * *"}
-func handleJobSave(w http.ResponseWriter,req *http.Request) {
-
+func handleJobSave(resp http.ResponseWriter,req *http.Request) {
+	fmt.Println("保存任务接口")
 	var (
 		err error
 		postJob string
 		job common.Job
+		oldJob *common.Job
+		bytes []byte
 	)
 	err = req.ParseForm()
 	if err != nil{
@@ -40,10 +43,23 @@ func handleJobSave(w http.ResponseWriter,req *http.Request) {
 	if err != nil{
 		goto ERR
 	}
+	oldJob ,err = G_jobMgr.SaveJob(&job)
+	if err != nil{
+		goto ERR
+	}
+	//返回正常应答{{"errno":0,"msg":"","data":{...}}}
+	bytes ,err  =common.BuildResponse(0,"success",oldJob)
+	if err != nil{
+		goto ERR
+	}
+	resp.Write(bytes)
 
 	return
 
 	ERR:
+		//返回异常应答
+		bytes ,_  =common.BuildResponse(0,err.Error(),nil)
+		resp.Write(bytes)
 }
 //初始化服务
 func InitApiServer()(err error)  {

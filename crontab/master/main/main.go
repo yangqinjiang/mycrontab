@@ -5,6 +5,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/master"
 	"fmt"
 	"flag"
+	"time"
 )
 
 var (
@@ -49,6 +50,9 @@ func main() {
 	}
 
 	//正常退出
+	for{
+		time.Sleep(1*time.Second)
+	}
 	return
 
 	//异常退出

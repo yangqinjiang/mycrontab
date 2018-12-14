@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net"
 	"time"
+	"strconv"
 )
 
 //任务的HTTP接口
@@ -31,15 +32,15 @@ func InitApiServer()(err error)  {
 	mux.HandleFunc("/job/save",handleJobSave)
 
 	//启动TCP监听
-	listener ,err = net.Listen("tcp",":8070")
+	listener ,err = net.Listen("tcp",":"+strconv.Itoa(G_config.ApiPort))
 	if err != nil{
 		return
 	}
 
 	//创建一个HTTP服务
 	httpServer := &http.Server{
-		ReadTimeout:5*time.Second,//超时
-		WriteTimeout:5*time.Second,
+		ReadTimeout:time.Duration(G_config.ApiReadTimeout)*time.Second,//超时
+		WriteTimeout:time.Duration(G_config.ApiWriteTimeout)*time.Second,
 		Handler:mux,
 	}
 	G_apiServer = &ApiServer{
@@ -47,4 +48,5 @@ func InitApiServer()(err error)  {
 	}
 	//启动服务端
 	go httpServer.Serve(listener)
+	return
 }

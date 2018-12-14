@@ -3,6 +3,9 @@ package master
 import (
 	"go.etcd.io/etcd/clientv3"
 	"time"
+	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"encoding/json"
+	"context"
 )
 
 type JobMgr struct {
@@ -39,5 +42,40 @@ func InitJobMgr()(err error)  {
 		kv:kv,
 		lease:lease,
 	}
+	return
+}
+
+//保存任务
+func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJobObj common.Job,err error)  {
+	//把任务保存到/cron/jobs/任务名 -> json
+	var (
+		jobKey string
+		jobValue []byte
+	)
+
+	//etcd保存的key
+	jobKey = "/cron/jobs/"+job.Name
+	//任务信息json
+	jobValue,err = json.Marshal(job)
+	if err != nil{
+		return
+	}
+	//保存到etcd
+	//返回旧值
+	putResp,err := jobMgr.kv.Put(context.TODO(),jobKey,string(jobValue),clientv3.WithPrevKV())
+	if err != nil{
+		return
+	}
+	//保存成功
+	//如果是更新,那么返回旧值
+	if putResp.PrevKv != nil{
+		//对旧值反序列化
+		err := json.Unmarshal(putResp.PrevKv.Value,&oldJobObj)
+		if err != nil{
+			err = nil //如果反序列化出错.跳过
+			return
+		}
+	}
+
 	return
 }

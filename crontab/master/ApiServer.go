@@ -5,6 +5,8 @@ import (
 	"net"
 	"time"
 	"strconv"
+	"encoding/json"
+	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
 
 //任务的HTTP接口
@@ -18,8 +20,30 @@ var (
 )
 
 //保存任务接口
-func handleJobSave(w http.ResponseWriter,r *http.Request)  {
+//保存任务到ETCD
+//post job={"name":"job1",""command:"echo hello","cronExpr":"* * * * *"}
+func handleJobSave(w http.ResponseWriter,req *http.Request) {
 
+	var (
+		err error
+		postJob string
+		job common.Job
+	)
+	err = req.ParseForm()
+	if err != nil{
+		goto ERR
+	}
+	//取表单的job字段
+	postJob = req.PostForm.Get("job")
+	//反序列化
+	err= json.Unmarshal([]byte(postJob),&job)
+	if err != nil{
+		goto ERR
+	}
+
+	return
+
+	ERR:
 }
 //初始化服务
 func InitApiServer()(err error)  {

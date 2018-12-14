@@ -8,9 +8,14 @@ import (
 
 //程序配置
 type Config struct {
+	//api server
 	ApiPort int `json:"apiPort"`
 	ApiReadTimeout int `json:"apiReadTimeout"`
 	ApiWriteTimeout int  `json:"apiWriteTimeout"`
+
+	//etcd
+	EtcdEndpoints []string `json:"etcdEndpoints"`
+	EtcdDialTimeout int `json:"etcdDialTimeout"`
 }
 var (
 	G_config *Config

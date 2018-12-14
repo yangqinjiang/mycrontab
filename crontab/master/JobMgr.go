@@ -72,7 +72,7 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJob *common.Job,err error)  {
 	//如果是更新,那么返回旧值
 	if putResp.PrevKv != nil{
 		//对旧值反序列化
-		err = json.Unmarshal(putResp.PrevKv.Value,&oldJob)
+		err = json.Unmarshal(putResp.PrevKv.Value,&oldJobObj)
 		if err != nil{
 			err = nil //如果反序列化出错.跳过
 			return
@@ -80,5 +80,31 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job) (oldJob *common.Job,err error)  {
 		oldJob = &oldJobObj
 	}
 
+	return
+}
+
+//删除任务
+func (jobMgr *JobMgr)DeleteJob(name string )(oldJob *common.Job,err error)  {
+	var (
+		jobKey string
+	)
+	//etcd保存任务的key
+	jobKey = "/cron/jobs/" + name
+	//从etcd删除它
+	delResp,err := jobMgr.kv.Delete(context.TODO(),jobKey,clientv3.WithPrevKV())
+	if err != nil{
+		return nil,err
+	}
+	//返回被删除的任务信息
+	if len(delResp.PrevKvs) != 0{
+		oldJobObj := common.Job{}
+		//解析并返回
+		err := json.Unmarshal(delResp.PrevKvs[0].Value,&oldJobObj)
+		if err != nil{
+			err = nil
+			return nil,err
+		}
+		oldJob = &oldJobObj
+	}
 	return
 }

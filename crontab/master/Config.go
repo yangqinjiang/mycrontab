@@ -16,6 +16,8 @@ type Config struct {
 	//etcd
 	EtcdEndpoints []string `json:"etcdEndpoints"`
 	EtcdDialTimeout int `json:"etcdDialTimeout"`
+	
+	WebRoot string `json:"webroot"`
 }
 var (
 	G_config *Config

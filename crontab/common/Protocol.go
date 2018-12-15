@@ -21,7 +21,7 @@ type Response struct {
 //变化事件
 type JobEvent struct {
 	EventType int//save delete
-	job *Job
+	Job *Job
 }
 
 //应答方法
@@ -58,6 +58,6 @@ func ExtractJobName(jobKey string) (string)  {
 func BuildJobEvent(eventType int,job *Job)(jobEvent *JobEvent)  {
 	return &JobEvent{
 		EventType:eventType,
-		job:job,
+		Job:job,
 	}
 }

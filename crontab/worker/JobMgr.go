@@ -77,7 +77,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//TODO:是把这个job同步给scheduler(调度协程)
-			fmt.Println("当前任务=",*jobEvent)
+			fmt.Println("当前任务=",jobEvent.Job.Name,jobEvent.Job.Command)
 		}
 
 	}

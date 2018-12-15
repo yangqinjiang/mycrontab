@@ -13,6 +13,7 @@ var (
 )
 //解析命令行参数
 //TODO:在 goland IDE里启动,需要替换working directory
+///src/github.com/yangqinjiang/mycrontab/crontab/master/main
 func initArgs()  {
 	flag.StringVar(&confFile,"config","./master.json","指定master.json")
 	flag.Parse()

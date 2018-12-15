@@ -6,6 +6,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"encoding/json"
 	"context"
+	"fmt"
 )
 
 type JobMgr struct {
@@ -134,4 +135,39 @@ func (jobMgr *JobMgr)ListJobs()(jobList []*common.Job,err error)  {
 
 
 	return jobList,nil
+}
+
+//杀死任务
+func (jobMgr *JobMgr)KillJob(name string)(err error)  {
+	//更新一下key=/cron/killer 任务名
+	var(
+		killerKey string
+		leaseGrantResp *clientv3.LeaseGrantResponse
+		leaseId clientv3.LeaseID
+	)
+	//通知worker杀死对应任务
+	killerKey = common.JOB_KILLER_DIR + name
+	fmt.Println(killerKey)
+
+	//让worker监听到一次put操作,创建一个租约让其稍后自动过期即可
+	leaseGrantResp,err = jobMgr.lease.Grant(context.TODO(),30)
+	if err != nil{
+		return
+	}
+
+	//租约ID
+	leaseId = leaseGrantResp.ID
+
+	//设置killer标记
+	_,err = jobMgr.kv.Put(context.TODO(),killerKey,"",clientv3.WithLease(leaseId))
+	if err != nil{
+		return
+	}
+
+
+
+
+
+
+	return
 }

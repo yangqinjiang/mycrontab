@@ -78,6 +78,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//TODO:是把这个job同步给scheduler(调度协程)
 			fmt.Println("当前任务=",jobEvent.Job.Name,jobEvent.Job.Command)
+			G_scheduler.PUshJobEvent(jobEvent)
 		}
 
 	}
@@ -114,7 +115,8 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 
 				}
-				//TODO:反序列化job,推送给scheduler
+				//推送给scheduler
+				G_scheduler.PUshJobEvent(jobEvent)
 			}
 		}
 

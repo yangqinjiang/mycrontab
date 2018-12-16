@@ -39,6 +39,11 @@ func main() {
 		goto ERR
 	}
 
+	//启动任务调度器
+	err = worker.InitScheduler()
+	if err != nil{
+		goto ERR
+	}
 	//启动任务管理器
 	err = worker.InitJobMgr()
 	if err != nil{

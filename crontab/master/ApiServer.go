@@ -159,9 +159,9 @@ ERR:
 //初始化服务
 func InitApiServer() (err error) {
 	var (
-		mux      *http.ServeMux
-		listener net.Listener
-		staticDir http.Dir  //静态文件根目录
+		mux           *http.ServeMux
+		listener      net.Listener
+		staticDir     http.Dir     //静态文件根目录
 		staticHandler http.Handler //静态文件的HTTP回调
 	)
 	//配置路由
@@ -175,8 +175,7 @@ func InitApiServer() (err error) {
 	staticDir = http.Dir(G_config.WebRoot)
 	staticHandler = http.FileServer(staticDir)
 	// /index.html -> index.html  -> ./webroot/index.htmlß
-	mux.Handle("/",http.StripPrefix("/",staticHandler)) //匹配最长的 pattern
-
+	mux.Handle("/", http.StripPrefix("/", staticHandler)) //匹配最长的 pattern
 
 	//启动TCP监听
 	listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort))

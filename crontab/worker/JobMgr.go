@@ -77,7 +77,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//TODO:是把这个job同步给scheduler(调度协程)
-			fmt.Println("当前任务=",jobEvent.Job.Name,jobEvent.Job.Command)
+			fmt.Println("当前任务=", jobEvent.Job.Name, jobEvent.Job.Command)
 			G_scheduler.PUshJobEvent(jobEvent)
 		}
 
@@ -90,10 +90,10 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 		watchStartRevision = getResp.Header.Revision + 1 // 监听下一次的
 		//监听/cron/jobs/目录的后续变化
 		//with-rev, with-prefix
-		watchChan = jobMgr.watcher.Watch(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithRev(watchStartRevision),clientv3.WithPrefix())
+		watchChan = jobMgr.watcher.Watch(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithRev(watchStartRevision), clientv3.WithPrefix())
 		//处理监听事件
 		for watchResp = range watchChan {
-			for _,watchEvent = range watchResp.Events {
+			for _, watchEvent = range watchResp.Events {
 				switch watchEvent.Type {
 				case mvccpb.PUT: //任务保存
 					if job, err = common.UnpackJob(watchEvent.Kv.Value); err != nil {

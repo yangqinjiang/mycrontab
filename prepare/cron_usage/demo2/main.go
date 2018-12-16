@@ -1,23 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorhill/cronexpr"
 	"time"
-	"fmt"
 )
 
 //代表一个任务
 type CronJob struct {
-	expr *cronexpr.Expression
+	expr     *cronexpr.Expression
 	nextTime time.Time // expr.Next(now)
 }
+
 func main() {
 
 	//需要有一个调度协程,它定时检查所有的Cron任务,谁过期了就执行谁
-	var(
-		cronJob *CronJob
-		expr *cronexpr.Expression
-		now time.Time
+	var (
+		cronJob       *CronJob
+		expr          *cronexpr.Expression
+		now           time.Time
 		scheduleTable map[string]*CronJob //key:任务的名称
 	)
 
@@ -30,8 +31,8 @@ func main() {
 	//第一个cronJob
 	expr = cronexpr.MustParse("*/5 * * * * * *")
 	cronJob = &CronJob{
-		expr:expr,
-		nextTime:expr.Next(now),
+		expr:     expr,
+		nextTime: expr.Next(now),
 	}
 
 	//任务注册到调度表
@@ -40,8 +41,8 @@ func main() {
 	//第2个cronJob
 	expr = cronexpr.MustParse("*/6 * * * * * *")
 	cronJob = &CronJob{
-		expr:expr,
-		nextTime:expr.Next(now),
+		expr:     expr,
+		nextTime: expr.Next(now),
 	}
 
 	//任务注册到调度表
@@ -52,35 +53,34 @@ func main() {
 		var (
 			jobName string
 			cronJob *CronJob
-			now time.Time
+			now     time.Time
 		)
 
 		//定时检查一下任务调度表
 		for {
 			now = time.Now()
-			for jobName,cronJob = range scheduleTable{
+			for jobName, cronJob = range scheduleTable {
 				//判断是否过期
-				if cronJob.nextTime.Before(now) || cronJob.nextTime.Equal(now){
+				if cronJob.nextTime.Before(now) || cronJob.nextTime.Equal(now) {
 					//启动一个协程,执行这个任务
 					go func(jobName string) {
-						fmt.Println("执行:",jobName)
+						fmt.Println("执行:", jobName)
 					}(jobName)
 
 					//计算下一次调度时间
 					cronJob.nextTime = cronJob.expr.Next(now)
-					fmt.Println(jobName,"下次执行时间:",cronJob.nextTime)
+					fmt.Println(jobName, "下次执行时间:", cronJob.nextTime)
 				}
 			}
 			//睡眠100ms
 			select {
-			case <- time.NewTimer(100*time.Millisecond).C: //将在100ms可读,返回
-			//fmt.Print(".")
+			case <-time.NewTimer(100 * time.Millisecond).C: //将在100ms可读,返回
+				//fmt.Print(".")
 			}
 		}
 	}()
 
-
 	//主协程,睡眠100s
-	time.Sleep(100*time.Second)
+	time.Sleep(100 * time.Second)
 
 }

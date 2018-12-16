@@ -1,21 +1,22 @@
 package main
 
 import (
-	"runtime"
-	"github.com/yangqinjiang/mycrontab/crontab/master"
-	"fmt"
 	"flag"
+	"fmt"
+	"github.com/yangqinjiang/mycrontab/crontab/master"
+	"runtime"
 	"time"
 )
 
 var (
 	confFile string //配置文件的路径
 )
+
 //解析命令行参数
 //TODO:在 goland IDE里启动,需要替换working directory
 ///src/github.com/yangqinjiang/mycrontab/crontab/master/main
-func initArgs()  {
-	flag.StringVar(&confFile,"config","./master.json","指定master.json")
+func initArgs() {
+	flag.StringVar(&confFile, "config", "./master.json", "指定master.json")
 	flag.Parse()
 }
 func InitEnv() {
@@ -35,29 +36,29 @@ func main() {
 
 	//加载配置
 	err = master.InitConfig(confFile)
-	if err != nil{
+	if err != nil {
 		goto ERR
 	}
 
 	//启动任务管理器
 	err = master.InitJobMgr()
-	if err != nil{
+	if err != nil {
 		goto ERR
 	}
 
 	//启动Api Http服务
 	err = master.InitApiServer()
-	if err != nil{
-		goto ERR//启动出错,直接跳出
+	if err != nil {
+		goto ERR //启动出错,直接跳出
 	}
 
 	//正常退出
-	for{
-		time.Sleep(1*time.Second)
+	for {
+		time.Sleep(1 * time.Second)
 	}
 	return
 
 	//异常退出
-	ERR:
-		fmt.Println(err)
+ERR:
+	fmt.Println(err)
 }

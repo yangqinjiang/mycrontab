@@ -1,21 +1,22 @@
 package main
 
 import (
-	"runtime"
-	"fmt"
 	"flag"
-	"time"
+	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/worker"
+	"runtime"
+	"time"
 )
 
 var (
 	confFile string //配置文件的路径
 )
+
 //解析命令行参数
 //TODO:在 goland IDE里启动,需要替换working directory
 ///src/github.com/yangqinjiang/mycrontab/crontab/worker/main
-func initArgs()  {
-	flag.StringVar(&confFile,"config","./worker.json","指定worker.json")
+func initArgs() {
+	flag.StringVar(&confFile, "config", "./worker.json", "指定worker.json")
 	flag.Parse()
 }
 func InitEnv() {
@@ -35,28 +36,28 @@ func main() {
 
 	//加载配置
 	err = worker.InitConfig(confFile)
-	if err != nil{
+	if err != nil {
 		goto ERR
 	}
 
 	//启动任务调度器
 	err = worker.InitScheduler()
-	if err != nil{
+	if err != nil {
 		goto ERR
 	}
 	//启动任务管理器
 	err = worker.InitJobMgr()
-	if err != nil{
+	if err != nil {
 		goto ERR
 	}
 
 	//正常退出
-	for{
-		time.Sleep(1*time.Second)
+	for {
+		time.Sleep(1 * time.Second)
 	}
 	return
 
 	//异常退出
-	ERR:
-		fmt.Println(err)
+ERR:
+	fmt.Println(err)
 }

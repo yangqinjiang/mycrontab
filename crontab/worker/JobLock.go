@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/clientv3"
+	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
 
 //分布式锁(TXN事务)
@@ -68,7 +69,7 @@ func (jobLock *JobLock) TryLock() (err error) {
 	//3创建事务txn
 	txn = jobLock.Kv.Txn(context.TODO())
 	//锁路径
-	lockKey = "/cron/lock" + jobLock.JobName
+	lockKey = common.JOB_LOCK_DIR + jobLock.JobName
 	//4,事务抢锁
 	txn.If(clientv3.Compare(clientv3.CreateRevision(lockKey), "=", 0)).
 		Then(clientv3.OpPut(lockKey, "", clientv3.WithLease(leaseId))).

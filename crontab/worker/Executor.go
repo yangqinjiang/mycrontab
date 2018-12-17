@@ -23,6 +23,7 @@ func (executor *Executor)ExecuteJob(info *common.JobExecuteInfo)  {
 			output []byte
 			err error
 			result *common.JobExecuteResult
+			jobLock *JobLock
 		)
 		//任务执行的结果
 		result = &common.JobExecuteResult{
@@ -31,16 +32,32 @@ func (executor *Executor)ExecuteJob(info *common.JobExecuteInfo)  {
 			StartTime:time.Now(),
 
 		}
-		//执行shell命令
-		cmd = exec.CommandContext(context.TODO(),"/bin/bash","-c",info.Job.Command)
-		//执行并捕获输出
-		output,err = cmd.CombinedOutput()
-		//记录结束时间
-		result.EndTime = time.Now()
-		result.Output = output
-		result.Err = err
-		//任务执行完成后,把执行的结果返回给scheduler,它会从executingTable删除执行记录
-		G_scheduler.PushJobResult(result)
+
+		//初始化分布式锁
+		jobLock = G_jobMgr.CreateJobLock(info.Job.Name)
+		err = jobLock.TryLock();
+		//释放锁
+		defer jobLock.Unlock()
+		if err != nil{
+			result.Err=err
+			result.EndTime = time.Now()
+		}else{
+			//上锁成功后,重置任务启动时间
+			result.StartTime = time.Now()
+			//执行shell命令
+			cmd = exec.CommandContext(context.TODO(),"/bin/bash","-c",info.Job.Command)
+			//执行并捕获输出
+			output,err = cmd.CombinedOutput()
+			//记录结束时间
+			result.EndTime = time.Now()
+			result.Output = output
+			result.Err = err
+			//任务执行完成后,把执行的结果返回给scheduler,它会从executingTable删除执行记录
+			G_scheduler.PushJobResult(result)
+
+		}
+
+
 
 	}()
 }

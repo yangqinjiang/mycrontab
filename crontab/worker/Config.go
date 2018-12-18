@@ -13,10 +13,13 @@ type Config struct {
 	EtcdEndpoints   []string `json:"etcdEndpoints"`
 	EtcdDialTimeout int      `json:"etcdDialTimeout"`
 
-	MongodbUri       string `json:"mongodbUri"`
-	MongodbConnectTimeout int      `json:"mongodbConnectTimeout"`
-	MongodbUsername string `json:"mongodbUsername"`
-	MongodbPassword string `json:"mongodbPassword"`
+	MongodbUri            string `json:"mongodbUri"`
+	MongodbConnectTimeout int    `json:"mongodbConnectTimeout"`
+	MongodbUsername       string `json:"mongodbUsername"`
+	MongodbPassword       string `json:"mongodbPassword"`
+
+	JobLogBatchSize     int `json:"jobLogBatchSize"`
+	JobLogCommitTimeout int `json:"jobLogCommitTimeout"`
 }
 
 var (

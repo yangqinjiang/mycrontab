@@ -2,8 +2,8 @@ package worker
 
 import (
 	"context"
-	"go.etcd.io/etcd/clientv3"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"go.etcd.io/etcd/clientv3"
 )
 
 //分布式锁(TXN事务)
@@ -12,8 +12,8 @@ type JobLock struct {
 	Lease      clientv3.Lease
 	JobName    string             //任务名
 	cancelFunc context.CancelFunc //用于终止自动续租
-	leaseId clientv3.LeaseID//租约ID
-	isLocked bool//是否抢到锁
+	leaseId    clientv3.LeaseID   //租约ID
+	isLocked   bool               //是否抢到锁
 }
 
 //初始化一把锁
@@ -97,7 +97,7 @@ FAIL:
 
 func (jobLock *JobLock) Unlock() {
 	if jobLock.isLocked {
-	jobLock.cancelFunc()//取消我们程序自动续租的协程
-	jobLock.Lease.Revoke(context.TODO(),jobLock.leaseId)//释放租约
+		jobLock.cancelFunc()                                  //取消我们程序自动续租的协程
+		jobLock.Lease.Revoke(context.TODO(), jobLock.leaseId) //释放租约
 	}
 }

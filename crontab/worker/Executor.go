@@ -2,9 +2,9 @@ package worker
 
 import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"math/rand"
 	"os/exec"
 	"time"
-	"math/rand"
 )
 
 //任务执行器
@@ -36,7 +36,7 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 		//初始化分布式锁
 		jobLock = G_jobMgr.CreateJobLock(info.Job.Name)
 		//随机睡眠(0~1s),解决抢锁频繁问题
-		time.Sleep(time.Duration(rand.Intn(1000))*time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
 		err = jobLock.TryLock()
 		//释放锁

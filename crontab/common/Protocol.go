@@ -1,11 +1,11 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gorhill/cronexpr"
 	"strings"
 	"time"
-	"context"
 )
 
 //定时任务
@@ -24,11 +24,11 @@ type JobSchedulePlan struct {
 
 //任务执行状态
 type JobExecuteInfo struct {
-	Job      *Job      //任务信息
-	PlanTime time.Time //理论上的调度时间
-	RealTime time.Time //实际的调度时间
-	CancelCtx context.Context //取消command的context
-	CancelFunc context.CancelFunc//取消command的函数
+	Job        *Job               //任务信息
+	PlanTime   time.Time          //理论上的调度时间
+	RealTime   time.Time          //实际的调度时间
+	CancelCtx  context.Context    //取消command的context
+	CancelFunc context.CancelFunc //取消command的函数
 }
 
 type Response struct {
@@ -51,17 +51,24 @@ type JobExecuteResult struct {
 	StartTime   time.Time       //启动时间
 	EndTime     time.Time       //结束时间
 }
+
 //
 type JobLog struct {
-	JobName string `bson:"jobName"`//任务名字
-	Command string `bson:"command"`//脚本命令
-	Err string `bson:"err"`//错误原因
-	Output string `bson:"output"`//脚本输出
-	PlanTime int64 `bson:"planTime"`//计划开始时间
-	ScheduleTime int64 `bson:"scheduleTime"`//实际调度时间
-	StartTime int64 `bson:"startTime"`//任务执行开始时间
-	EndTime int64 `bson:"endTime"`//任务执行结束时间
+	JobName      string `bson:"jobName"`      //任务名字
+	Command      string `bson:"command"`      //脚本命令
+	Err          string `bson:"err"`          //错误原因
+	Output       string `bson:"output"`       //脚本输出
+	PlanTime     int64  `bson:"planTime"`     //计划开始时间
+	ScheduleTime int64  `bson:"scheduleTime"` //实际调度时间
+	StartTime    int64  `bson:"startTime"`    //任务执行开始时间
+	EndTime      int64  `bson:"endTime"`      //任务执行结束时间
 }
+
+//日志批次
+type LogBatch struct {
+	Logs []interface{} //多条日志
+}
+
 //应答方法
 func BuildResponse(errno int, msg string, data interface{}) (resp []byte, err error) {
 	//定义一个response
@@ -91,6 +98,7 @@ func UnpackJob(value []byte) (ret *Job, err error) {
 func ExtractJobName(jobKey string) string {
 	return strings.TrimPrefix(jobKey, JOB_SAVE_DIR)
 }
+
 //从etcd的key中提取任务名称
 // /cron/killer/job10 => job10
 func ExtractKillerName(jobKey string) string {
@@ -131,6 +139,6 @@ func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobE
 		PlanTime: jobSchedulePlan.NextTime, //计算调度时间
 		RealTime: time.Now(),               //真实调度时间
 	}
-	jobExecuteInfo.CancelCtx,jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
+	jobExecuteInfo.CancelCtx, jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
 	return
 }

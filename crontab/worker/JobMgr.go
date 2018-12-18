@@ -130,26 +130,23 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 }
 
 //创建任务执行锁
-func (jobMgr *JobMgr)CreateJobLock(jobName string)(jobLock *JobLock)  {
+func (jobMgr *JobMgr) CreateJobLock(jobName string) (jobLock *JobLock) {
 	//返回 一把锁
-	jobLock = InitJobLock(jobName,jobMgr.kv,jobMgr.lease)
+	jobLock = InitJobLock(jobName, jobMgr.kv, jobMgr.lease)
 	return
 }
 
-
 //监听强杀任务通知
-func (jobMgr *JobMgr)watchKiller() (err error) {
+func (jobMgr *JobMgr) watchKiller() (err error) {
 
 	var (
-		job                *common.Job
-		watchChan          clientv3.WatchChan
-		watchResp          clientv3.WatchResponse
-		watchEvent         *clientv3.Event
-		jobEvent           *common.JobEvent
-		jobName string
+		job        *common.Job
+		watchChan  clientv3.WatchChan
+		watchResp  clientv3.WatchResponse
+		watchEvent *clientv3.Event
+		jobEvent   *common.JobEvent
+		jobName    string
 	)
-
-
 
 	//2,从该revision向后监听变化事件
 	//监听/cron/killer协程
@@ -163,8 +160,8 @@ func (jobMgr *JobMgr)watchKiller() (err error) {
 				switch watchEvent.Type {
 				case mvccpb.PUT: //杀死任务事件
 					jobName = common.ExtractKillerName(string(watchEvent.Kv.Key))
-					job = &common.Job{Name:jobName}
-					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL,job)
+					job = &common.Job{Name: jobName}
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 					//推送给scheduler
 					G_scheduler.PUshJobEvent(jobEvent)
 				case mvccpb.DELETE: //killer标记过期,被自动删除

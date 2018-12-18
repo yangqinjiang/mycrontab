@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"go.etcd.io/etcd/clientv3"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
@@ -81,7 +80,7 @@ func (jobLock *JobLock) TryLock() (err error) {
 
 	//5,成功返回,失败释放租约
 	if !txnResp.Succeeded { //锁被占用
-		err = errors.New("锁被占用")
+		err = common.ERR_LOCK_ALREADY_REQUIRED
 		//
 		goto FAIL
 	}

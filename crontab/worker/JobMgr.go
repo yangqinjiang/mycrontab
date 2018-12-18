@@ -47,8 +47,12 @@ func InitJobMgr() (err error) {
 		watcher: watcher,
 	}
 
-	//启动监听
+	//启动监听任务
 	G_jobMgr.watchJobs()
+
+	//启动监听killer
+	G_jobMgr.watchKiller()
+
 	return
 }
 
@@ -129,5 +133,48 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 func (jobMgr *JobMgr)CreateJobLock(jobName string)(jobLock *JobLock)  {
 	//返回 一把锁
 	jobLock = InitJobLock(jobName,jobMgr.kv,jobMgr.lease)
+	return
+}
+
+
+//监听强杀任务通知
+func (jobMgr *JobMgr)watchKiller() (err error) {
+
+	var (
+		job                *common.Job
+		watchChan          clientv3.WatchChan
+		watchResp          clientv3.WatchResponse
+		watchEvent         *clientv3.Event
+		jobEvent           *common.JobEvent
+		jobName string
+	)
+
+
+
+	//2,从该revision向后监听变化事件
+	//监听/cron/killer协程
+	go func() {
+		//监听/cron/killer目录的后续变化
+		//  with-prefix
+		watchChan = jobMgr.watcher.Watch(context.TODO(), common.JOB_KILLER_DIR, clientv3.WithPrefix())
+		//处理监听事件
+		for watchResp = range watchChan {
+			for _, watchEvent = range watchResp.Events {
+				switch watchEvent.Type {
+				case mvccpb.PUT: //杀死任务事件
+					jobName = common.ExtractKillerName(string(watchEvent.Kv.Key))
+					job = &common.Job{Name:jobName}
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL,job)
+					//推送给scheduler
+					G_scheduler.PUshJobEvent(jobEvent)
+				case mvccpb.DELETE: //killer标记过期,被自动删除
+					//不关心此操作
+				}
+
+			}
+		}
+
+	}()
+
 	return
 }

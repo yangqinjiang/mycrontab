@@ -39,6 +39,11 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+
+	err = worker.InitLogSink()
+	if err != nil {
+		goto ERR
+	}
 	//启动任务执行器
 	err = worker.InitExecutor()
 	if err != nil {

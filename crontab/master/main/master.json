@@ -15,5 +15,11 @@
   "etcdDialTimeout":5000,
 
   "web页面根目录":"静态页面,前后端分离开发",
-  "webroot":"./webroot"
+  "webroot":"./webroot",
+
+  "mongodb地址":"采用mongodb URI",
+  "mongodbUri":"mongodb://106.12.37.124:27017",
+  "mongodbConnectTimeout":5000,
+  "mongodbUsername":"root",
+  "mongodbPassword":"123456"
 }

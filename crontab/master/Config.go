@@ -18,6 +18,12 @@ type Config struct {
 	EtcdDialTimeout int      `json:"etcdDialTimeout"`
 
 	WebRoot string `json:"webroot"`
+
+	MongodbUri            string `json:"mongodbUri"`
+	MongodbConnectTimeout int    `json:"mongodbConnectTimeout"`
+	MongodbUsername       string `json:"mongodbUsername"`
+	MongodbPassword       string `json:"mongodbPassword"`
+
 }
 
 var (

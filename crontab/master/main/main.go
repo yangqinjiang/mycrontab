@@ -45,6 +45,12 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	//启动日志管理器
+	err = master.InitLogMgr()
+	if err != nil {
+		goto ERR
+	}
+
 
 	//启动Api Http服务
 	err = master.InitApiServer()

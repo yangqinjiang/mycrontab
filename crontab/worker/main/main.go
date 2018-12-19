@@ -59,7 +59,11 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-
+	//启动服务注册管理器
+	err = worker.InitRegistr()
+	if err != nil {
+		goto ERR
+	}
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)

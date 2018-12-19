@@ -50,6 +50,11 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	//启动服务发现
+	err = master.InitWorkerMgr()
+	if err != nil {
+		goto ERR
+	}
 
 
 	//启动Api Http服务

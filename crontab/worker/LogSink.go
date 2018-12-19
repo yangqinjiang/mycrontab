@@ -6,6 +6,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"time"
+	"fmt"
 )
 
 type LogSink struct {
@@ -27,7 +28,7 @@ func InitLogSink() (err error) {
 	)
 	//建立mongodb链接
 	if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
-		clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Microsecond),
+		clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
 		clientopt.Auth(clientopt.Credential{
 			Username: G_config.MongodbUsername,
 			Password: G_config.MongodbPassword,
@@ -48,8 +49,12 @@ func InitLogSink() (err error) {
 
 //批量写入日志
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
+	fmt.Println("批量写入日志")
 	//不处理是否保存成功
-	logSink.logCollection.InsertMany(context.TODO(), batch.Logs)
+	_,err := logSink.logCollection.InsertMany(context.TODO(), batch.Logs)
+	if err != nil{
+		fmt.Println("写入日志出错了",err)
+	}
 }
 
 //日志存储协程
@@ -74,6 +79,7 @@ func (logSink *LogSink) writeLoop() {
 				commitTimer = time.AfterFunc(time.Duration(G_config.JobLogCommitTimeout)*time.Millisecond,
 					func(batch *common.LogBatch) func() {
 						return func() {
+							fmt.Println("让这个批次超时自动提交")
 							//发出超时通知,不能直接提交batch
 							logSink.autoCommitChan <- batch
 						}
@@ -84,6 +90,7 @@ func (logSink *LogSink) writeLoop() {
 			logBatch.Logs = append(logBatch.Logs, log)
 			//如果批次满了,就发送
 			if len(logBatch.Logs) >= G_config.JobLogBatchSize {
+				fmt.Println("如果批次满了,就发送")
 				//发送日志
 				logSink.saveLogs(logBatch)
 				//清空

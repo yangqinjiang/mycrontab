@@ -42,6 +42,7 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {
+			fmt.Println("强杀任务:",jobExecuteInfo.Job.Name)
 			jobExecuteInfo.CancelFunc() //触发command杀死shell
 		}
 	}

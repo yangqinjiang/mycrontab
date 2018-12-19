@@ -146,7 +146,7 @@ func (jobMgr *JobMgr) KillJob(name string) (err error) {
 	)
 	//通知worker杀死对应任务
 	killerKey = common.JOB_KILLER_DIR + name
-	fmt.Println(killerKey)
+	fmt.Println("杀死任务:",killerKey)
 
 	//让worker监听到一次put操作,创建一个租约让其稍后自动过期即可
 	leaseGrantResp, err = jobMgr.lease.Grant(context.TODO(), 30)

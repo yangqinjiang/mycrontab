@@ -1,2 +1,7 @@
 .idea
 *.etcd
+crontab/deploy/master
+crontab/master/main/bin
+
+crontab/deploy/worker
+crontab/worker/main/bin

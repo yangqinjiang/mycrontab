@@ -10,14 +10,15 @@ After=network-online.target
 # 服务类型
 Type=simple
 # 运行时用户与用户组
-User=work
-Group=work
+User=www
+Group=www
 # 进程退出立即重启
 Restart=always
 # 启动命令
-ExecStart=/home/work/crontab/master/main -config /home/work/crontab/master/master.json
+ExecStart=/usr/local/go_crontab/master/bin/master -config /usr/local/go_crontab/master/bin/master.json
 # 进程工作目录
-WorkingDirectory=/home/work/crontab/master
+WorkingDirectory=/usr/local/go_crontab/master/bin
+
 
 [Install]
 # 在系统启动后,加载我们的unit

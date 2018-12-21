@@ -24,7 +24,7 @@ func InitEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 func main() {
-	fmt.Println("master running...")
+	fmt.Println("crontab master running...")
 	var (
 		err error
 	)
@@ -39,22 +39,26 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("读取配置文件")
 
 	//启动任务管理器
 	err = master.InitJobMgr()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动任务管理器")
 	//启动日志管理器
 	err = master.InitLogMgr()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动日志管理器")
 	//启动服务发现
 	err = master.InitWorkerMgr()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动服务发现")
 
 
 	//启动Api Http服务
@@ -62,7 +66,8 @@ func main() {
 	if err != nil {
 		goto ERR //启动出错,直接跳出
 	}
-
+	fmt.Println("启动Api Http服务")
+	fmt.Println("master启动完成")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
@@ -71,5 +76,5 @@ func main() {
 
 	//异常退出
 ERR:
-	fmt.Println(err)
+	fmt.Println("master启动失败:",err)
 }

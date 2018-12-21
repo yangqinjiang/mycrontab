@@ -24,7 +24,7 @@ func InitEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 func main() {
-	fmt.Println("worker running...")
+	fmt.Println("crontab worker running...")
 	var (
 		err error
 	)
@@ -39,31 +39,38 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("读取配置文件")
 
 	err = worker.InitLogSink()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("初始化mongodb的实例")
 	//启动任务执行器
 	err = worker.InitExecutor()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动任务执行器")
 	//启动任务调度器
 	err = worker.InitScheduler()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动任务调度器")
 	//启动任务管理器
 	err = worker.InitJobMgr()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动任务管理器")
 	//启动服务注册管理器
 	err = worker.InitRegistr()
 	if err != nil {
 		goto ERR
 	}
+	fmt.Println("启动服务注册管理器")
+	fmt.Println("worker启动完成")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
@@ -72,5 +79,5 @@ func main() {
 
 	//异常退出
 ERR:
-	fmt.Println(err)
+	fmt.Println("worker启动失败:",err)
 }

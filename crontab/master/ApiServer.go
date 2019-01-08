@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -17,7 +18,8 @@ type ApiServer struct {
 
 var (
 	//单例对象
-	G_apiServer *ApiServer
+	G_apiServer   *ApiServer
+	onceApiServer sync.Once
 )
 
 //保存任务接口
@@ -200,18 +202,19 @@ ERR:
 	bytes, _ = common.BuildResponse(-1, err.Error(), nil)
 	resp.Write(bytes)
 }
+
 //获取健康worker节点列表
 func handleWorkerList(resp http.ResponseWriter, req *http.Request) {
 	var (
 		workerArr []string
-		err error
-		bytes []byte
+		err       error
+		bytes     []byte
 	)
-	if workerArr,err = G_workerMgr.ListWorker();err != nil{
+	if workerArr, err = G_workerMgr.ListWorker(); err != nil {
 		goto ERR
 	}
 	//返回正常应答{{"errno":0,"msg":"","data":{...}}}
-	bytes, err = common.BuildResponse(0, "success",workerArr)
+	bytes, err = common.BuildResponse(0, "success", workerArr)
 	if err != nil {
 		goto ERR
 	}
@@ -219,49 +222,53 @@ func handleWorkerList(resp http.ResponseWriter, req *http.Request) {
 	return
 
 ERR:
-//返回异常应答
+	//返回异常应答
 	bytes, _ = common.BuildResponse(-1, err.Error(), nil)
 	resp.Write(bytes)
 }
+
 //初始化服务
 func InitApiServer() (err error) {
-	var (
-		mux           *http.ServeMux
-		listener      net.Listener
-		staticDir     http.Dir     //静态文件根目录
-		staticHandler http.Handler //静态文件的HTTP回调
-	)
-	//配置路由
-	mux = http.NewServeMux()
-	mux.HandleFunc("/job/save", handleJobSave)
-	mux.HandleFunc("/job/delete", handleJobDelete)
-	mux.HandleFunc("/job/list", handleJobList)
-	mux.HandleFunc("/job/kill", handleJobKill)
-	mux.HandleFunc("/job/log", handleJobLog)
-	mux.HandleFunc("/worker/list", handleWorkerList)
+	onceApiServer.Do(func() {
 
-	//静态文件目录
-	staticDir = http.Dir(G_config.WebRoot)
-	staticHandler = http.FileServer(staticDir)
-	// /index.html -> index.html  -> ./webroot/index.htmlß
-	mux.Handle("/", http.StripPrefix("/", staticHandler)) //匹配最长的 pattern
+		var (
+			mux           *http.ServeMux
+			listener      net.Listener
+			staticDir     http.Dir     //静态文件根目录
+			staticHandler http.Handler //静态文件的HTTP回调
+		)
+		//配置路由
+		mux = http.NewServeMux()
+		mux.HandleFunc("/job/save", handleJobSave)
+		mux.HandleFunc("/job/delete", handleJobDelete)
+		mux.HandleFunc("/job/list", handleJobList)
+		mux.HandleFunc("/job/kill", handleJobKill)
+		mux.HandleFunc("/job/log", handleJobLog)
+		mux.HandleFunc("/worker/list", handleWorkerList)
 
-	//启动TCP监听
-	listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort))
-	if err != nil {
-		return
-	}
+		//静态文件目录
+		staticDir = http.Dir(G_config.WebRoot)
+		staticHandler = http.FileServer(staticDir)
+		// /index.html -> index.html  -> ./webroot/index.htmlß
+		mux.Handle("/", http.StripPrefix("/", staticHandler)) //匹配最长的 pattern
 
-	//创建一个HTTP服务
-	httpServer := &http.Server{
-		ReadTimeout:  time.Duration(G_config.ApiReadTimeout) * time.Second, //超时
-		WriteTimeout: time.Duration(G_config.ApiWriteTimeout) * time.Second,
-		Handler:      mux,
-	}
-	G_apiServer = &ApiServer{
-		httpServer: httpServer,
-	}
-	//启动服务端
-	go httpServer.Serve(listener)
+		//启动TCP监听
+		listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort))
+		if err != nil {
+			return
+		}
+
+		//创建一个HTTP服务
+		httpServer := &http.Server{
+			ReadTimeout:  time.Duration(G_config.ApiReadTimeout) * time.Second, //超时
+			WriteTimeout: time.Duration(G_config.ApiWriteTimeout) * time.Second,
+			Handler:      mux,
+		}
+		G_apiServer = &ApiServer{
+			httpServer: httpServer,
+		}
+		//启动服务端
+		go httpServer.Serve(listener)
+	})
 	return
 }

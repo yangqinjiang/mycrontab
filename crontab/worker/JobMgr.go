@@ -6,6 +6,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
+	"sync"
 	"time"
 )
 
@@ -19,40 +20,43 @@ type JobMgr struct {
 var (
 	//单例
 	G_jobMgr *JobMgr
+	onceJobMgr     sync.Once
 )
 
 //初始化管理器
 func InitJobMgr() (err error) {
-	//初始化配置
-	//读取配置文件
-	config := clientv3.Config{
-		Endpoints:   G_config.EtcdEndpoints, //集群地址
-		DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Microsecond,
-	}
-	//建立连接
-	client, err := clientv3.New(config)
+	onceJobMgr.Do(func() {
 
-	if err != nil {
-		return
-	}
-	//得到Kv和Lease的API子集
-	kv := clientv3.NewKV(client)
-	lease := clientv3.NewLease(client)
-	watcher := clientv3.NewWatcher(client)
-	//赋值单例
-	G_jobMgr = &JobMgr{
-		client:  client,
-		kv:      kv,
-		lease:   lease,
-		watcher: watcher,
-	}
+		//初始化配置
+		//读取配置文件
+		config := clientv3.Config{
+			Endpoints:   G_config.EtcdEndpoints, //集群地址
+			DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Microsecond,
+		}
+		//建立连接
+		client, err := clientv3.New(config)
 
-	//启动监听任务
-	G_jobMgr.watchJobs()
+		if err != nil {
+			return
+		}
+		//得到Kv和Lease的API子集
+		kv := clientv3.NewKV(client)
+		lease := clientv3.NewLease(client)
+		watcher := clientv3.NewWatcher(client)
+		//赋值单例
+		G_jobMgr = &JobMgr{
+			client:  client,
+			kv:      kv,
+			lease:   lease,
+			watcher: watcher,
+		}
 
-	//启动监听killer
-	G_jobMgr.watchKiller()
+		//启动监听任务
+		G_jobMgr.watchJobs()
 
+		//启动监听killer
+		G_jobMgr.watchKiller()
+	})
 	return
 }
 

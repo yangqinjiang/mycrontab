@@ -4,6 +4,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"math/rand"
 	"os/exec"
+	"sync"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type Executor struct {
 
 var (
 	G_executor *Executor
+	onceexec       sync.Once
 )
 
 //执行一个任务
@@ -64,7 +66,8 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 
 //初始化执行器
 func InitExecutor() (err error) {
-
-	G_executor = &Executor{}
+	onceexec.Do(func() {
+		G_executor = &Executor{}
+	})
 	return
 }

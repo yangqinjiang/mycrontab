@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type Scheduler struct {
 //单例
 var (
 	G_scheduler *Scheduler
+	oncescheduler        sync.Once
 )
 
 //处理任务事件
@@ -42,7 +44,7 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {
-			fmt.Println("强杀任务:",jobExecuteInfo.Job.Name)
+			fmt.Println("强杀任务:", jobExecuteInfo.Job.Name)
 			jobExecuteInfo.CancelFunc() //触发command杀死shell
 		}
 	}
@@ -144,14 +146,17 @@ func (scheduler *Scheduler) PUshJobEvent(jobEvent *common.JobEvent) {
 
 //初始化调度器
 func InitScheduler() (err error) {
-	G_scheduler = &Scheduler{
-		jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
-		jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
-		jobExecutingTable: make(map[string]*common.JobExecuteInfo),
-		jobResultChan:     make(chan *common.JobExecuteResult),
-	}
-	//启动协程
-	go G_scheduler.scheduleLoop()
+	oncescheduler.Do(func() {
+
+		G_scheduler = &Scheduler{
+			jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
+			jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
+			jobExecutingTable: make(map[string]*common.JobExecuteInfo),
+			jobResultChan:     make(chan *common.JobExecuteResult),
+		}
+		//启动协程
+		go G_scheduler.scheduleLoop()
+	})
 	return
 }
 

@@ -1,3 +1,6 @@
+#库安装
+`go get github.com/astaxie/beego/logs`
+
 # 课后练习
 - web增加任务超时配置项
 - worker支持超时检查

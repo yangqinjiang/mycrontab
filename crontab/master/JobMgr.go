@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"go.etcd.io/etcd/clientv3"
+	"sync"
 	"time"
 )
 
@@ -17,32 +18,36 @@ type JobMgr struct {
 
 var (
 	//单例
-	G_jobMgr *JobMgr
+	G_jobMgr   *JobMgr
+	onceJobMgr sync.Once
 )
 
 //初始化管理器
 func InitJobMgr() (err error) {
-	//初始化配置
-	//读取配置文件
-	config := clientv3.Config{
-		Endpoints:   G_config.EtcdEndpoints, //集群地址
-		DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Microsecond,
-	}
-	//建立连接
-	client, err := clientv3.New(config)
+	onceJobMgr.Do(func() {
 
-	if err != nil {
-		return
-	}
-	//得到Kv和Lease的API子集
-	kv := clientv3.NewKV(client)
-	lease := clientv3.NewLease(client)
-	//赋值单例
-	G_jobMgr = &JobMgr{
-		client: client,
-		kv:     kv,
-		lease:  lease,
-	}
+		//初始化配置
+		//读取配置文件
+		config := clientv3.Config{
+			Endpoints:   G_config.EtcdEndpoints, //集群地址
+			DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Microsecond,
+		}
+		//建立连接
+		client, err := clientv3.New(config)
+
+		if err != nil {
+			return
+		}
+		//得到Kv和Lease的API子集
+		kv := clientv3.NewKV(client)
+		lease := clientv3.NewLease(client)
+		//赋值单例
+		G_jobMgr = &JobMgr{
+			client: client,
+			kv:     kv,
+			lease:  lease,
+		}
+	})
 	return
 }
 
@@ -146,7 +151,7 @@ func (jobMgr *JobMgr) KillJob(name string) (err error) {
 	)
 	//通知worker杀死对应任务
 	killerKey = common.JOB_KILLER_DIR + name
-	fmt.Println("杀死任务:",killerKey)
+	fmt.Println("杀死任务:", killerKey)
 
 	//让worker监听到一次put操作,创建一个租约让其稍后自动过期即可
 	leaseGrantResp, err = jobMgr.lease.Grant(context.TODO(), 30)

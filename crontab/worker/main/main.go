@@ -79,5 +79,5 @@ func main() {
 
 	//异常退出
 ERR:
-	fmt.Println("worker启动失败:",err)
+	fmt.Println("worker启动失败:", err)
 }

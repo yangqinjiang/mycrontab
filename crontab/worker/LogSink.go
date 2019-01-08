@@ -2,11 +2,12 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"sync"
 	"time"
-	"fmt"
 )
 
 type LogSink struct {
@@ -19,31 +20,37 @@ type LogSink struct {
 var (
 	//单例
 	G_logSink *LogSink
+	oncelog      sync.Once
 )
 
 //初始化mongodb的实例
 func InitLogSink() (err error) {
-	var (
-		client *mongo.Client
-	)
-	//建立mongodb链接
-	if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
-		clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
-		clientopt.Auth(clientopt.Credential{
-			Username: G_config.MongodbUsername,
-			Password: G_config.MongodbPassword,
-		})); err != nil {
-		return
-	}
-	//选择db和collection
-	G_logSink = &LogSink{
-		client:         client,
-		logCollection:  client.Database("cron").Collection("log"),
-		logChan:        make(chan *common.JobLog, 1000),   //日志队列
-		autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
-	}
-	//启动一个mongodb处理协程
-	go G_logSink.writeLoop()
+
+	oncelog.Do(func() {
+		var (
+			client *mongo.Client
+		)
+		//建立mongodb链接
+		if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
+			clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
+			clientopt.Auth(clientopt.Credential{
+				Username: G_config.MongodbUsername,
+				Password: G_config.MongodbPassword,
+			})); err != nil {
+			return
+		}
+
+		//选择db和collection
+		G_logSink = &LogSink{
+			client:         client,
+			logCollection:  client.Database("cron").Collection("log"),
+			logChan:        make(chan *common.JobLog, 1000),   //日志队列
+			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
+		}
+		//启动一个mongodb处理协程
+		go G_logSink.writeLoop()
+	})
+
 	return
 }
 
@@ -51,9 +58,9 @@ func InitLogSink() (err error) {
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
 	fmt.Println("批量写入日志")
 	//不处理是否保存成功
-	_,err := logSink.logCollection.InsertMany(context.TODO(), batch.Logs)
-	if err != nil{
-		fmt.Println("写入日志出错了",err)
+	_, err := logSink.logCollection.InsertMany(context.TODO(), batch.Logs)
+	if err != nil {
+		fmt.Println("写入日志出错了", err)
 	}
 }
 

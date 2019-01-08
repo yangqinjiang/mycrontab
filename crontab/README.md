@@ -1,5 +1,9 @@
-#库安装,依赖beego的日志模块
-`go get github.com/astaxie/beego`
+#库安装,依赖模块
+`beego: go get github.com/astaxie/beego`
+
+`ETCD: https://github.com/etcd-io/etcd/commit/15b6a17be48dea91a11497980b9adab541add7f0`
+`cronexpr: https://github.com/gorhill/cronexpr`
+`mongodb,未知其分支`,
 
 # 课后练习
 - web增加任务超时配置项

@@ -5,7 +5,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/master"
 	"runtime"
 	"time"
-	"github.com/beego/bee/logger"
+	"github.com/astaxie/beego/logs"
 )
 
 var (
@@ -24,8 +24,8 @@ func InitEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 func main() {
-
-	beeLogger.Log.Info("crontab master running...")
+	
+	logs.Info("crontab master running...")
 
 	var (
 		err error
@@ -41,26 +41,26 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	beeLogger.Log.Info("读取配置文件")
+	logs.Info("读取配置文件")
 
 	//启动任务管理器
 	err = master.InitJobMgr()
 	if err != nil {
 		goto ERR
 	}
-	beeLogger.Log.Info("启动任务管理器")
+	logs.Info("启动任务管理器")
 	//启动日志管理器
 	err = master.InitLogMgr()
 	if err != nil {
 		goto ERR
 	}
-	beeLogger.Log.Info("启动日志管理器")
+	logs.Info("启动日志管理器")
 	//启动服务发现
 	err = master.InitWorkerMgr()
 	if err != nil {
 		goto ERR
 	}
-	beeLogger.Log.Info("启动服务发现")
+	logs.Info("启动服务发现")
 
 
 	//启动Api Http服务
@@ -68,8 +68,8 @@ func main() {
 	if err != nil {
 		goto ERR //启动出错,直接跳出
 	}
-	beeLogger.Log.Info("启动Api Http服务")
-	beeLogger.Log.Info("master启动完成.正常待机")
+	logs.Info("启动Api Http服务")
+	logs.Info("master启动完成.正常待机")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
@@ -78,5 +78,5 @@ func main() {
 
 	//异常退出
 ERR:
-	beeLogger.Log.Error("master启动失败:"+err.Error())
+	logs.Error("master启动失败:"+err.Error())
 }

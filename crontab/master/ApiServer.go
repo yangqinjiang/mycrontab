@@ -2,13 +2,13 @@ package master
 
 import (
 	"encoding/json"
-	"github.com/beego/bee/logger"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"net"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+	"github.com/astaxie/beego/logs"
 )
 
 //任务的HTTP接口
@@ -26,7 +26,7 @@ var (
 //保存任务到ETCD
 //post job={"name":"job1",""command:"echo hello","cronExpr":"* * * * *"}
 func handleJobSave(resp http.ResponseWriter, req *http.Request) {
-	beeLogger.Log.Info("调用保存任务接口")
+	logs.Info("调用保存任务接口")
 	var (
 		err     error
 		postJob string
@@ -67,7 +67,7 @@ ERR:
 //删除etcd的任务
 // post /job/delete name=job1
 func handleJobDelete(resp http.ResponseWriter, req *http.Request) {
-	beeLogger.Log.Info("调用删除etcd的任务接口")
+	logs.Info("调用删除etcd的任务接口")
 	var (
 		err    error
 		name   string
@@ -102,7 +102,7 @@ ERR:
 
 //列出任务
 func handleJobList(resp http.ResponseWriter, req *http.Request) {
-	beeLogger.Log.Info("列出任务")
+	logs.Info("列出任务")
 	var (
 		jobList []*common.Job
 		err     error
@@ -146,7 +146,7 @@ func handleJobLog(resp http.ResponseWriter, req *http.Request) {
 	}
 	//获取请求参数 /job/log?name=job10&skip=0&limit=10
 	name = req.Form.Get("name")
-	beeLogger.Log.Info("查询[" + name + "]任务日志")
+	logs.Info("查询[" + name + "]任务日志")
 	skipParam = req.Form.Get("skip")
 	limitParam = req.Form.Get("limit")
 	if skip, err = strconv.Atoi(skipParam); err != nil {
@@ -187,7 +187,7 @@ func handleJobKill(resp http.ResponseWriter, req *http.Request) {
 	}
 	//要杀死的任务名称
 	name = req.PostForm.Get("name")
-	beeLogger.Log.Info("强杀[" + name + "]任务")
+	logs.Info("强杀[" + name + "]任务")
 	err = G_jobMgr.KillJob(name)
 	if err != nil {
 		goto ERR
@@ -208,7 +208,7 @@ ERR:
 
 //获取健康worker节点列表
 func handleWorkerList(resp http.ResponseWriter, req *http.Request) {
-	beeLogger.Log.Info("获取健康worker节点列表")
+	logs.Info("获取健康worker节点列表")
 	var (
 		workerArr []string
 		err       error
@@ -234,7 +234,7 @@ ERR:
 //初始化服务
 func InitApiServer() (err error) {
 	onceApiServer.Do(func() {
-		beeLogger.Log.Info("初始化ApiServer服务")
+		logs.Info("初始化ApiServer服务")
 
 		var (
 			mux           *http.ServeMux
@@ -243,7 +243,7 @@ func InitApiServer() (err error) {
 			staticHandler http.Handler //静态文件的HTTP回调
 		)
 		//配置路由
-		beeLogger.Log.Info("配置路由")
+		logs.Info("配置路由")
 
 		//配置路由
 		mux = http.NewServeMux()
@@ -267,7 +267,7 @@ func InitApiServer() (err error) {
 		}
 
 		//创建一个HTTP服务
-		beeLogger.Log.Info("创建一个HTTP服务")
+		logs.Info("创建一个HTTP服务")
 
 		httpServer := &http.Server{
 			ReadTimeout:  time.Duration(G_config.ApiReadTimeout) * time.Second, //超时

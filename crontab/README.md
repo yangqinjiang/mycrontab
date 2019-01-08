@@ -1,5 +1,5 @@
-#库安装
-`go get github.com/astaxie/beego/logs`
+#库安装,依赖beego的日志模块
+`go get github.com/astaxie/beego`
 
 # 课后练习
 - web增加任务超时配置项

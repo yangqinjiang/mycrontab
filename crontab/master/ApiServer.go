@@ -2,13 +2,13 @@ package master
 
 import (
 	"encoding/json"
+	"github.com/beego/bee/logger"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"net"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
-	"github.com/beego/bee/logger"
 )
 
 //任务的HTTP接口
@@ -146,7 +146,7 @@ func handleJobLog(resp http.ResponseWriter, req *http.Request) {
 	}
 	//获取请求参数 /job/log?name=job10&skip=0&limit=10
 	name = req.Form.Get("name")
-	beeLogger.Log.Info("查询["+name+"]任务日志")
+	beeLogger.Log.Info("查询[" + name + "]任务日志")
 	skipParam = req.Form.Get("skip")
 	limitParam = req.Form.Get("limit")
 	if skip, err = strconv.Atoi(skipParam); err != nil {
@@ -187,7 +187,7 @@ func handleJobKill(resp http.ResponseWriter, req *http.Request) {
 	}
 	//要杀死的任务名称
 	name = req.PostForm.Get("name")
-	beeLogger.Log.Info("强杀["+name+"]任务")
+	beeLogger.Log.Info("强杀[" + name + "]任务")
 	err = G_jobMgr.KillJob(name)
 	if err != nil {
 		goto ERR
@@ -234,8 +234,7 @@ ERR:
 //初始化服务
 func InitApiServer() (err error) {
 	onceApiServer.Do(func() {
-	beeLogger.Log.Info("初始化ApiServer服务")
-	
+		beeLogger.Log.Info("初始化ApiServer服务")
 
 		var (
 			mux           *http.ServeMux
@@ -243,8 +242,8 @@ func InitApiServer() (err error) {
 			staticDir     http.Dir     //静态文件根目录
 			staticHandler http.Handler //静态文件的HTTP回调
 		)
-    //配置路由
-	beeLogger.Log.Info("配置路由")
+		//配置路由
+		beeLogger.Log.Info("配置路由")
 
 		//配置路由
 		mux = http.NewServeMux()
@@ -261,7 +260,6 @@ func InitApiServer() (err error) {
 		// /index.html -> index.html  -> ./webroot/index.htmlß
 		mux.Handle("/", http.StripPrefix("/", staticHandler)) //匹配最长的 pattern
 
-
 		//启动TCP监听
 		listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort))
 		if err != nil {
@@ -269,7 +267,7 @@ func InitApiServer() (err error) {
 		}
 
 		//创建一个HTTP服务
-    beeLogger.Log.Info("创建一个HTTP服务")
+		beeLogger.Log.Info("创建一个HTTP服务")
 
 		httpServer := &http.Server{
 			ReadTimeout:  time.Duration(G_config.ApiReadTimeout) * time.Second, //超时

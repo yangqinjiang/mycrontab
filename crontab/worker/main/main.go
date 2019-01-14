@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/worker"
 	"runtime"
 	"time"
@@ -24,7 +24,7 @@ func InitEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 func main() {
-	fmt.Println("crontab worker running...")
+	logs.Info("crontab worker running...")
 	var (
 		err error
 	)
@@ -39,38 +39,43 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("读取配置文件")
+	logs.Info("读取配置文件")
 
-	err = worker.InitLogSink()
+	err = worker.InitMongoDbLog()
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("初始化mongodb的实例")
+	logs.Info("初始化mongodb的实例")
+	err = worker.InitLogSink(worker.G_MongoDbLog)
+	if err != nil {
+		goto ERR
+	}
+	logs.Info("初始化LogSink的实例")
 	//启动任务执行器
 	err = worker.InitExecutor()
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("启动任务执行器")
+	logs.Info("启动任务执行器")
 	//启动任务调度器
 	err = worker.InitScheduler()
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("启动任务调度器")
+	logs.Info("启动任务调度器")
 	//启动任务管理器
 	err = worker.InitJobMgr()
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("启动任务管理器")
+	logs.Info("启动任务管理器")
 	//启动服务注册管理器
 	err = worker.InitRegistr()
 	if err != nil {
 		goto ERR
 	}
-	fmt.Println("启动服务注册管理器")
-	fmt.Println("worker启动完成")
+	logs.Info("启动服务注册管理器")
+	logs.Info("worker启动完成")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
@@ -79,5 +84,5 @@ func main() {
 
 	//异常退出
 ERR:
-	fmt.Println("worker启动失败:", err)
+	logs.Error("worker启动失败:", err)
 }

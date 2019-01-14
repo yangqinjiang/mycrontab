@@ -1,51 +1,37 @@
 package worker
 
 import (
-	"context"
 	"fmt"
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
 	"time"
 )
 
 type LogSink struct {
-	client         *mongo.Client
-	logCollection  *mongo.Collection
-	logChan        chan *common.JobLog
-	autoCommitChan chan *common.LogBatch
+	logChan        chan *common.JobLog   //日志队列
+	autoCommitChan chan *common.LogBatch //提交日志的信息
+	//保存日志的接口
+	LogSaver Log
 }
 
 var (
 	//单例
 	G_logSink *LogSink
-	oncelog      sync.Once
+	oncelog   sync.Once
 )
 
 //初始化mongodb的实例
-func InitLogSink() (err error) {
-
+func InitLogSink(logSaver Log) (err error) {
+	if nil == logSaver {
+		panic("必须传入common.Log的实现类")
+	}
 	oncelog.Do(func() {
-		var (
-			client *mongo.Client
-		)
-		//建立mongodb链接
-		if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
-			clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
-			clientopt.Auth(clientopt.Credential{
-				Username: G_config.MongodbUsername,
-				Password: G_config.MongodbPassword,
-			})); err != nil {
-			return
-		}
 
 		//选择db和collection
 		G_logSink = &LogSink{
-			client:         client,
-			logCollection:  client.Database("cron").Collection("log"),
 			logChan:        make(chan *common.JobLog, 1000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
+			LogSaver:       logSaver,
 		}
 		//启动一个mongodb处理协程
 		go G_logSink.writeLoop()
@@ -56,12 +42,8 @@ func InitLogSink() (err error) {
 
 //批量写入日志
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
-	fmt.Println("批量写入日志")
-	//不处理是否保存成功
-	_, err := logSink.logCollection.InsertMany(context.TODO(), batch.Logs)
-	if err != nil {
-		fmt.Println("写入日志出错了", err)
-	}
+	fmt.Println("LogSink批量写入日志")
+	logSink.LogSaver.SaveLogs(batch)
 }
 
 //日志存储协程

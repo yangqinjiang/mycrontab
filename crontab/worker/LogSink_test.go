@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"strconv"
-	"sync"
 	"testing"
+	"time"
 )
-
-var wg = &sync.WaitGroup{}
 
 type TestWriter struct {
 }
 
 func (w *TestWriter) Write(p []byte) (n int, err error) {
-	wg.Done()
-	fmt.Println(len(p))
+
+	fmt.Println(len(p)) //只打印 p的长度
 	return 0, nil
 }
 
@@ -28,9 +26,6 @@ func TestLogSink1(t *testing.T) {
 	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
 	G_config.JobLogBatchSize = 10        //日志批次大小
 
-	fmt.Println("JobLogCommitTimeout=", G_config.JobLogCommitTimeout)
-	fmt.Println("JobLogBatchSize=", G_config.JobLogBatchSize)
-	fmt.Println("MAIN=", &wg)
 	w := &TestWriter{}
 
 	err = InitLogSink(w)
@@ -39,12 +34,8 @@ func TestLogSink1(t *testing.T) {
 	}
 	//注意整除的影响
 	FOR_SIZE := 100
-	bsize := FOR_SIZE / G_config.JobLogBatchSize
-	for i := 0; i < FOR_SIZE; i++ {
 
-		if i%bsize == 0 { //
-			wg.Add(1)
-		}
+	for i := 0; i < FOR_SIZE; i++ {
 
 		G_logSink.Append(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
@@ -52,8 +43,7 @@ func TestLogSink1(t *testing.T) {
 		})
 
 	}
-	wg.Wait()
-
+	time.Sleep(10*time.Second)
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}

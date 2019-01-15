@@ -7,6 +7,7 @@ import (
 	"sync"
 	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
 	"time"
+	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
 
 //mongodb的日志模型
@@ -19,11 +20,18 @@ type MongoDbLog struct {
 func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
 	logs.Info("MongoDbLog批量写入日志",len(p))
 
-	documents := make([]interface{}, len(p))
-	for i, s := range p {
-		documents[i] = byte(s)
+	var log []common.JobLog
+	err = common.GetInterface(p,&log)
+	if err != nil {
+		logs.Error("convert byte to JobLog err", err)
 	}
-	_, err = mongodb.logCollection.InsertMany(context.TODO(),documents)
+	doc := make([]interface{}, len(log))
+	for _,i := range log {
+		logs.Debug(i)
+		doc = append(doc, i)
+	}
+
+	_, err = mongodb.logCollection.InsertMany(context.TODO(),doc)
 	n = 0
 	if err != nil {
 		logs.Error("写入日志出错了", err)

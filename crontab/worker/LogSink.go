@@ -42,10 +42,11 @@ func InitLogSink(logSaver Log) (err error) {
 
 //批量写入日志
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
-	logs.Info("LogSink批量写入日志")
-	b ,err := common.GetBytes(batch)
+	logs.Info("LogSink批量写入日志 len=", len(batch.Logs))
+
+	b ,err := common.GetBytes(batch.Logs)
 	if err != nil{
-		logs.Error("LogSink GetBytes Error",err.Error())
+		logs.Error("LogSink GetBytes Error",err)
 		return
 	}
 	logSink.LogSaver.Write(b)

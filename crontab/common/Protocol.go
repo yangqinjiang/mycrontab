@@ -66,7 +66,7 @@ type JobLog struct {
 
 //日志批次
 type LogBatch struct {
-	Logs []interface{} //多条日志
+	Logs []*JobLog //多条日志
 }
 //任务日志过滤条件
 type JobLogFilter struct {

@@ -1,10 +1,10 @@
 package worker
 
 import (
-	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
 	"time"
+	"github.com/astaxie/beego/logs"
 )
 
 type LogSink struct {
@@ -42,8 +42,13 @@ func InitLogSink(logSaver Log) (err error) {
 
 //批量写入日志
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
-	fmt.Println("LogSink批量写入日志")
-	logSink.LogSaver.SaveLogs(batch)
+	logs.Info("LogSink批量写入日志")
+	b ,err := common.GetBytes(batch)
+	if err != nil{
+		logs.Error("LogSink GetBytes Error",err.Error())
+		return
+	}
+	logSink.LogSaver.Write(b)
 }
 
 //日志存储协程
@@ -68,7 +73,7 @@ func (logSink *LogSink) writeLoop() {
 				commitTimer = time.AfterFunc(time.Duration(G_config.JobLogCommitTimeout)*time.Millisecond,
 					func(batch *common.LogBatch) func() {
 						return func() {
-							fmt.Println("让这个批次超时自动提交")
+							logs.Info("让这个批次超时自动提交")
 							//发出超时通知,不能直接提交batch
 							logSink.autoCommitChan <- batch
 						}
@@ -79,7 +84,7 @@ func (logSink *LogSink) writeLoop() {
 			logBatch.Logs = append(logBatch.Logs, log)
 			//如果批次满了,就发送
 			if len(logBatch.Logs) >= G_config.JobLogBatchSize {
-				fmt.Println("如果批次满了,就发送")
+				logs.Info("如果批次满了,就发送")
 				//发送日志
 				logSink.saveLogs(logBatch)
 				//清空

@@ -2,17 +2,17 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"io"
 	"sync"
 	"time"
+	"github.com/astaxie/beego/logs"
 )
 
 //日志接口类
 type Log interface {
-	SaveLogs(batch *common.LogBatch)
+	io.Writer
 }
 
 //mongodb的日志模型
@@ -21,13 +21,20 @@ type MongoDbLog struct {
 	logCollection *mongo.Collection
 }
 
-func (mongodb *MongoDbLog) SaveLogs(batch *common.LogBatch) {
-	fmt.Println("MongoDbLog批量写入日志")
-	//不处理是否保存成功
-	_, err := mongodb.logCollection.InsertMany(context.TODO(), batch.Logs)
-	if err != nil {
-		fmt.Println("写入日志出错了", err)
+
+func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
+	logs.Info("MongoDbLog批量写入日志")
+
+	documents := make([]interface{}, len(p))
+	for i, s := range p {
+		documents[i] = s
 	}
+	_, err = mongodb.logCollection.InsertMany(context.TODO(), documents)
+	n = 0
+	if err != nil {
+		logs.Error("写入日志出错了", err)
+	}
+	return
 }
 
 var (

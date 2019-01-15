@@ -21,7 +21,7 @@ func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
 
 	documents := make([]interface{}, len(p))
 	for i, s := range p {
-		documents[i] = s
+		documents[i] = byte(s)
 	}
 	_, err = mongodb.logCollection.InsertMany(context.TODO(),documents)
 	n = 0

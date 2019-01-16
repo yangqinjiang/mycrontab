@@ -58,7 +58,7 @@ func main() {
 	}
 	logs.Info("启动任务执行器")
 	//启动任务调度器
-	err,_ = worker.InitScheduler()
+	err,_ = worker.InitScheduler(nil)
 	if err != nil {
 		goto ERR
 	}

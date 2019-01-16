@@ -39,7 +39,7 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 
 	for i := 0; i < FOR_SIZE; i++ {
 
-		G_logSink.Append(&common.JobLog{
+		G_logSink.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})
@@ -73,7 +73,7 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 
 	for i := 0; i < FOR_SIZE; i++ {
 		time.Sleep(2*time.Second)
-		G_logSink.Append(&common.JobLog{
+		G_logSink.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})
@@ -121,7 +121,7 @@ func TestLogSinkToMongoDb(t *testing.T) {
 
 	for i := 0; i < FOR_SIZE; i++ {
 
-		G_logSink.Append(&common.JobLog{
+		G_logSink.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})

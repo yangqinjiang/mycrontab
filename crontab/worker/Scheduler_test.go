@@ -9,12 +9,12 @@ import (
 //初始化任务调度器
 func TestInitScheduler(t *testing.T) {
 	//第一次初始化任务调度器
-	err,s1 := InitScheduler()
+	err,s1 := InitScheduler(nil)
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}
 	//第二次初始化
-	err ,s2 := InitScheduler()
+	err ,s2 := InitScheduler(nil)
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}
@@ -25,7 +25,7 @@ func TestInitScheduler(t *testing.T) {
 
 func TestScheduler_PushJobEvent(t *testing.T) {
 	//第一次初始化任务调度器
-	err,_ := InitScheduler()
+	err,_ := InitScheduler(nil)
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}
@@ -40,7 +40,7 @@ func TestScheduler_PushJobEvent(t *testing.T) {
 
 func TestScheduler_PushJobResult(t *testing.T) {
 	//第一次初始化任务调度器
-	err,_ := InitScheduler()
+	err,_ := InitScheduler(nil)
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}

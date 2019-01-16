@@ -16,6 +16,7 @@ type Scheduler struct {
 	jobPlanTable      map[string]*common.JobSchedulePlan //任务调度计划表内存里的任务计划表,
 	jobExecutingTable map[string]*common.JobExecuteInfo  //任务执行表
 	jobResultChan     chan *common.JobExecuteResult      //任务执行结果队列
+	jobLogger JobLogger
 }
 
 
@@ -163,9 +164,10 @@ func (scheduler *Scheduler)JobResultChanLen() int  {
 //启动协程
 func (scheduler *Scheduler)Loop()  {
 	//启动协程
+	logs.Info("启动调度协程")
 	go G_scheduler.scheduleLoop()
 }
-//处理任务结果
+//处理任务结果,记录任务的执行时间,计划时间,输出结果
 func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 
 	if result.ExecuteInfo == nil{
@@ -193,9 +195,11 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 		} else {
 			jobLog.Err = ""
 		}
-		//存储到mongodb
-		//TODO:使用接口
-		G_logSink.Append(jobLog)
+		if scheduler.jobLogger != nil{
+			//发送给日志记录器
+			scheduler.jobLogger.Write(jobLog)
+		}
+
 	}
 }
 
@@ -208,7 +212,7 @@ var (
 
 
 //初始化调度器
-func InitScheduler() (err error,scheduler *Scheduler) {
+func InitScheduler(jobLogger JobLogger) (err error,scheduler *Scheduler) {
 	oncescheduler.Do(func() {
 
 		G_scheduler = &Scheduler{
@@ -219,6 +223,7 @@ func InitScheduler() (err error,scheduler *Scheduler) {
 		}
 
 	})
+	G_scheduler.jobLogger = jobLogger
 	scheduler = G_scheduler
 	return
 }

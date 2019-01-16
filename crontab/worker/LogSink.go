@@ -115,7 +115,7 @@ func (logSink *LogSink) writeLoop() {
 }
 
 //发送日志
-func (logSink *LogSink) Append(jobLog *common.JobLog) {
+func (logSink *LogSink) Write(jobLog *common.JobLog) {
 	select {
 	case logSink.logChan <- jobLog: //未满
 	default:

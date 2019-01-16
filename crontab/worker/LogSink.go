@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 	"github.com/astaxie/beego/logs"
+	"errors"
 )
 
 type LogSink struct {
@@ -23,7 +24,7 @@ var (
 //初始化mongodb的实例
 func InitLogSink(logSaver Log) (err error) {
 	if nil == logSaver {
-		panic("必须传入common.Log的实现类")
+		return errors.New("必须传入common.Log的实现类")
 	}
 	oncelog.Do(func() {
 

@@ -86,7 +86,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//TODO:是把这个job同步给scheduler(调度协程)
 			fmt.Println("当前任务=", jobEvent.Job.Name, jobEvent.Job.Command)
-			G_scheduler.PUshJobEvent(jobEvent)
+			G_scheduler.PushJobEvent(jobEvent)
 		}
 
 	}
@@ -124,7 +124,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 
 				}
 				//推送给scheduler
-				G_scheduler.PUshJobEvent(jobEvent)
+				G_scheduler.PushJobEvent(jobEvent)
 			}
 		}
 
@@ -167,7 +167,7 @@ func (jobMgr *JobMgr) watchKiller() (err error) {
 					job = &common.Job{Name: jobName}
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 					//推送给scheduler
-					G_scheduler.PUshJobEvent(jobEvent)
+					G_scheduler.PushJobEvent(jobEvent)
 				case mvccpb.DELETE: //killer标记过期,被自动删除
 					//不关心此操作
 				}

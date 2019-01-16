@@ -1,12 +1,16 @@
 package worker
 
 import (
-	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"sync"
 	"time"
+	"fmt"
+	"github.com/astaxie/beego/logs"
+	"sync"
 )
 
+/**
+ 调度器,遍历所有任务列表, 找出最近一个要过期的任务
+ */
 type Scheduler struct {
 	jobEventChan      chan *common.JobEvent              //etcd任务事件队列
 	jobPlanTable      map[string]*common.JobSchedulePlan //任务调度计划表内存里的任务计划表,
@@ -14,11 +18,6 @@ type Scheduler struct {
 	jobResultChan     chan *common.JobExecuteResult      //任务执行结果队列
 }
 
-//单例
-var (
-	G_scheduler *Scheduler
-	oncescheduler        sync.Once
-)
 
 //处理任务事件
 func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
@@ -35,16 +34,18 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 		if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
 			return
 		}
+		logs.Info("保存任务:", jobEvent.Job.Name)
 		scheduler.jobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
 	case common.JOB_EVENT_DELETE: //删除任务事件
 		//首先检查是否已存在此任务 (内存)
 		if jobSchedulePlan, jobExisted = scheduler.jobPlanTable[jobEvent.Job.Name]; jobExisted {
+			logs.Info("删除任务:", jobEvent.Job.Name)
 			delete(scheduler.jobPlanTable, jobEvent.Job.Name)
 		}
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {
-			fmt.Println("强杀任务:", jobExecuteInfo.Job.Name)
+			logs.Info("强杀任务:", jobEvent.Job.Name)
 			jobExecuteInfo.CancelFunc() //触发command杀死shell
 		}
 	}
@@ -60,7 +61,7 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
 	//执行的任务可能运行很久,1分钟会调度60次,但是只能执行1次,防止并发
 	//如果任务正在执行,跳过本次调度
 	if _, jobExecuting = scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
-		fmt.Println("尚未退出,跳过执行")
+		logs.Info("尚未退出,跳过执行")
 		return
 	}
 	//不存在,则构建一个
@@ -69,7 +70,7 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
 	//构建执行状态信息
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
 
-	fmt.Println("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
+	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
 	//执行任务
 	G_executor.ExecuteJob(jobExecuteInfo)
 
@@ -140,25 +141,10 @@ func (scheduler *Scheduler) scheduleLoop() {
 }
 
 //推送任务变化事件
-func (scheduler *Scheduler) PUshJobEvent(jobEvent *common.JobEvent) {
+func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
 	scheduler.jobEventChan <- jobEvent
 }
 
-//初始化调度器
-func InitScheduler() (err error) {
-	oncescheduler.Do(func() {
-
-		G_scheduler = &Scheduler{
-			jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
-			jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
-			jobExecutingTable: make(map[string]*common.JobExecuteInfo),
-			jobResultChan:     make(chan *common.JobExecuteResult),
-		}
-		//启动协程
-		go G_scheduler.scheduleLoop()
-	})
-	return
-}
 
 //回传任务执行结果
 func (scheduler *Scheduler) PushJobResult(jobResult *common.JobExecuteResult) {
@@ -172,7 +158,7 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 	)
 	//删除执行状态
 	delete(scheduler.jobExecutingTable, result.ExecuteInfo.Job.Name)
-	fmt.Println("任务执行完成:", result.ExecuteInfo.Job.Name, " Es=", result.EndTime.Sub(result.StartTime), string(result.Output), " Err=", result.Err)
+	logs.Info("任务执行完成:", result.ExecuteInfo.Job.Name, " Es=", result.EndTime.Sub(result.StartTime), string(result.Output), " Err=", result.Err)
 	//生成执行日志
 	if result.Err != common.ERR_LOCK_ALREADY_REQUIRED {
 		jobLog = &common.JobLog{
@@ -190,6 +176,31 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 			jobLog.Err = ""
 		}
 		//存储到mongodb
+		//TODO:使用接口
 		G_logSink.Append(jobLog)
 	}
+}
+
+
+//单例
+var (
+	G_scheduler *Scheduler
+	oncescheduler        sync.Once
+)
+
+
+//初始化调度器
+func InitScheduler() (err error) {
+	oncescheduler.Do(func() {
+
+		G_scheduler = &Scheduler{
+			jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
+			jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
+			jobExecutingTable: make(map[string]*common.JobExecuteInfo),
+			jobResultChan:     make(chan *common.JobExecuteResult),
+		}
+		//启动协程
+		go G_scheduler.scheduleLoop()
+	})
+	return
 }

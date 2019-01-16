@@ -19,6 +19,8 @@ type Scheduler struct {
 }
 
 
+
+
 //处理任务事件
 func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	var (
@@ -140,9 +142,13 @@ func (scheduler *Scheduler) scheduleLoop() {
 	}
 }
 
-//推送任务变化事件
+//推送etcd任务变化事件
 func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
 	scheduler.jobEventChan <- jobEvent
+}
+//JobEventChan etcd任务事件队列的数量
+func (scheduler *Scheduler)JobEventChanLen() int  {
+	return len(scheduler.jobEventChan)
 }
 
 
@@ -150,9 +156,21 @@ func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
 func (scheduler *Scheduler) PushJobResult(jobResult *common.JobExecuteResult) {
 	scheduler.jobResultChan <- jobResult
 }
-
+//回传任务执行结果 队列的数量
+func (scheduler *Scheduler)JobResultChanLen() int  {
+	return len(scheduler.jobResultChan)
+}
+//启动协程
+func (scheduler *Scheduler)Loop()  {
+	//启动协程
+	go G_scheduler.scheduleLoop()
+}
 //处理任务结果
 func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
+
+	if result.ExecuteInfo == nil{
+		return
+	}
 	var (
 		jobLog *common.JobLog
 	)
@@ -190,17 +208,17 @@ var (
 
 
 //初始化调度器
-func InitScheduler() (err error) {
+func InitScheduler() (err error,scheduler *Scheduler) {
 	oncescheduler.Do(func() {
 
 		G_scheduler = &Scheduler{
 			jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
 			jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
 			jobExecutingTable: make(map[string]*common.JobExecuteInfo),
-			jobResultChan:     make(chan *common.JobExecuteResult),
+			jobResultChan:     make(chan *common.JobExecuteResult,1000),
 		}
-		//启动协程
-		go G_scheduler.scheduleLoop()
+
 	})
+	scheduler = G_scheduler
 	return
 }

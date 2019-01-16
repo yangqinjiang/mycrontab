@@ -58,10 +58,12 @@ func main() {
 	}
 	logs.Info("启动任务执行器")
 	//启动任务调度器
-	err = worker.InitScheduler()
+	err,_ = worker.InitScheduler()
 	if err != nil {
 		goto ERR
 	}
+	worker.G_scheduler.Loop()
+
 	logs.Info("启动任务调度器")
 	//启动任务管理器
 	err = worker.InitJobMgr()

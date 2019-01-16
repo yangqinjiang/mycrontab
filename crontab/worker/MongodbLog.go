@@ -24,6 +24,7 @@ func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
 	err = common.GetInterface(p,&log)
 	if err != nil {
 		logs.Error("convert byte to JobLog err", err)
+		return 0,err
 	}
 	doc := make([]interface{}, len(log))
 	for _,i := range log {
@@ -35,8 +36,10 @@ func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
 	n = 0
 	if err != nil {
 		logs.Error("写入日志出错了", err)
+		return  0,err
 	}
-	return
+
+	return 0,nil
 }
 
 var (

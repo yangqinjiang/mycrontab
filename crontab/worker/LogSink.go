@@ -46,10 +46,14 @@ func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
 
 	b ,err := common.GetBytes(batch.Logs)
 	if err != nil{
-		logs.Error("LogSink GetBytes Error",err)
+		logs.Error("LogSink convert interface{} to byte Error",err)
 		return
 	}
-	logSink.LogSaver.Write(b)
+	_,err =logSink.LogSaver.Write(b)
+	if err != nil{
+		logs.Error("LogSink Write Error",err)
+		return
+	}
 }
 
 //日志存储协程

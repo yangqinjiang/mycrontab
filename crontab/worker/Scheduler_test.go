@@ -65,6 +65,7 @@ type TestJobExecSuccess struct {
 
 func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
 	logs.Info("正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
+	time.Sleep(2*time.Second)
 	return
 }
 //执行任务失败的
@@ -73,6 +74,7 @@ type TestJobExecFail struct {
 
 func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo)(err error)  {
 	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
+	time.Sleep(2*time.Second)
 	return errors.New("执行任务失败")
 }
 
@@ -94,7 +96,7 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 		return
 	}
 	//cron表达式是正确的
-	job := &common.Job{Name: "TryStartJob",CronExpr:"* * * * * *",Command:"echo hello"}
+	job := &common.Job{Name: "TryStartJobSuccess",CronExpr:"* * * * * *",Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	var jobSchedulePlan *common.JobSchedulePlan
 	if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
@@ -125,15 +127,20 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 	logs.Info("设置任务的执行器")
 	G_scheduler.SetJobExecuter(&TestJobExecFail{})
 	//cron表达式是正确的
-	job := &common.Job{Name: "TryStartJob",CronExpr:"* * * * * *",Command:"echo hello"}
+	job := &common.Job{Name: "TryStartJobFail",CronExpr:"* * * * * *",Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	var jobSchedulePlan *common.JobSchedulePlan
 	if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
 		t.Fatal("构建任务调度计划失败",err)
 		return
 	}
+	logs.Info("执行任务")
 	err = G_scheduler.TryStartJob(jobSchedulePlan)
-	if err == nil{
+	if err.Error() != "执行任务失败"{
+		t.Fatal("执行任务应该是出错的",err)
+	}
+	err = G_scheduler.TryStartJob(jobSchedulePlan)
+	if err.Error() != "尚未退出,跳过执行"{
 		t.Fatal("执行任务应该是出错的",err)
 	}
 }

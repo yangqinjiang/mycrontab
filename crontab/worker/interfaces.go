@@ -14,3 +14,7 @@ type Log interface {
 type JobLogger interface {
 	Write(jobLog *common.JobLog)
 }
+//任务的执行器 的接口
+type JobExecuter interface {
+	Exec(info *common.JobExecuteInfo)
+}

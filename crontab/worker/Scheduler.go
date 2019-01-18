@@ -17,8 +17,14 @@ type Scheduler struct {
 	jobExecutingTable map[string]*common.JobExecuteInfo  //任务执行表
 	jobResultChan     chan *common.JobExecuteResult      //任务执行结果队列
 	jobLogger JobLogger
+	jobExecuter JobExecuter
 }
-
+/**
+设置任务的执行器
+ */
+func (scheduler *Scheduler)SetJobExecuter(jobExecuter JobExecuter)  {
+	scheduler.jobExecuter = jobExecuter
+}
 
 
 
@@ -67,15 +73,18 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
 		logs.Info("尚未退出,跳过执行")
 		return
 	}
+	if scheduler.jobExecuter == nil{
+		logs.Error("还没有设置任务的执行器")
+		return
+	}
 	//不存在,则构建一个
 	jobExecuteInfo = common.BuildJobExecuteInfo(jobPlan)
 
 	//构建执行状态信息
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
-
-	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
 	//执行任务
-	G_executor.ExecuteJob(jobExecuteInfo)
+	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
+	scheduler.jobExecuter.Exec(jobExecuteInfo)
 
 }
 

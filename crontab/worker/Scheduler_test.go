@@ -2,6 +2,7 @@ package worker
 
 import (
 	"errors"
+	"github.com/astaxie/beego/logs"
 	"testing"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"time"
@@ -112,6 +113,14 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}
+	logs.Info("设置空的任务的执行器 nil")
+	G_scheduler.SetJobExecuter(nil)//设置为nil值
+	// no JobExec
+	err = G_scheduler.TryStartJob(nil)
+	if err == nil{
+		t.Fatal("执行器应该是nil值",err)
+	}
+	logs.Info("设置任务的执行器")
 	G_scheduler.SetJobExecuter(&TestJobExecFail{})
 	//cron表达式是正确的
 	job := &common.Job{Name: "TryStartJob",CronExpr:"* * * * * *",Command:"echo hello"}

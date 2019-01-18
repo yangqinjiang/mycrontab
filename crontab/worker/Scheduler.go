@@ -64,15 +64,15 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 //尝试执行任务
 func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err error) {
 	//调度
-
+	if scheduler.jobExecuter == nil{
+		return errors.New("还没有设置任务的执行器")
+	}
 	//执行的任务可能运行很久,1分钟会调度60次,但是只能执行1次,防止并发
 	//如果任务正在执行,跳过本次调度
 	if _, jobExecuting := scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
 		return errors.New("尚未退出,跳过执行")
 	}
-	if scheduler.jobExecuter == nil{
-		return errors.New("还没有设置任务的执行器")
-	}
+
 	//不存在,则构建一个
 	jobExecuteInfo := common.BuildJobExecuteInfo(jobPlan)
 	//记录执行状态信息

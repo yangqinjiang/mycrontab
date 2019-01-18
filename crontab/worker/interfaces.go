@@ -16,5 +16,5 @@ type JobLogger interface {
 }
 //任务的执行器 的接口
 type JobExecuter interface {
-	Exec(info *common.JobExecuteInfo)
+	Exec(info *common.JobExecuteInfo)(error)
 }

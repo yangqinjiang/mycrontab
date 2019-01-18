@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"time"
 	"fmt"
@@ -61,30 +62,26 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 }
 
 //尝试执行任务
-func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
-	//调度和执行是2件事件
-	var (
-		jobExecuteInfo *common.JobExecuteInfo
-		jobExecuting   bool
-	)
+func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err error) {
+	//调度
+
 	//执行的任务可能运行很久,1分钟会调度60次,但是只能执行1次,防止并发
 	//如果任务正在执行,跳过本次调度
-	if _, jobExecuting = scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
-		logs.Info("尚未退出,跳过执行")
-		return
+	if _, jobExecuting := scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
+		return errors.New("尚未退出,跳过执行")
 	}
 	if scheduler.jobExecuter == nil{
-		logs.Error("还没有设置任务的执行器")
-		return
+		return errors.New("还没有设置任务的执行器")
 	}
 	//不存在,则构建一个
-	jobExecuteInfo = common.BuildJobExecuteInfo(jobPlan)
-
-	//构建执行状态信息
+	jobExecuteInfo := common.BuildJobExecuteInfo(jobPlan)
+	//记录执行状态信息
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
+
 	//执行任务
 	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
-	scheduler.jobExecuter.Exec(jobExecuteInfo)
+	err =scheduler.jobExecuter.Exec(jobExecuteInfo)
+	return err
 
 }
 

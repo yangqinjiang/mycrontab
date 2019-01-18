@@ -18,7 +18,7 @@ var (
 )
 
 //执行一个任务
-func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
+func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 	//启动协程
 	go func() {
 		var (
@@ -62,6 +62,7 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 		//任务执行完成后,把执行的结果返回给scheduler,它会从executingTable删除执行记录
 		G_scheduler.PushJobResult(result)
 	}()
+	return
 }
 
 //初始化执行器

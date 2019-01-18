@@ -62,6 +62,8 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	//设置任务执行器
+	worker.G_scheduler.SetJobExecuter(worker.G_executor)
 	worker.G_scheduler.Loop()
 
 	logs.Info("启动任务调度器")

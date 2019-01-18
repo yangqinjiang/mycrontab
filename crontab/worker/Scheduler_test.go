@@ -64,6 +64,7 @@ type TestJobExecSuccess struct {
 }
 
 func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
+	logs.Info("正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	return
 }
 //执行任务失败的
@@ -71,6 +72,7 @@ type TestJobExecFail struct {
 }
 
 func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo)(err error)  {
+	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	return errors.New("执行任务失败")
 }
 

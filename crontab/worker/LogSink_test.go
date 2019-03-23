@@ -33,7 +33,7 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_logSink.LogSaver = w
+	G_logSink.logSaver = w
 	//注意整除的影响
 	FOR_SIZE := 100
 
@@ -67,7 +67,7 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_logSink.LogSaver = w
+	G_logSink.logSaver = w
 	//注意整除的影响
 	FOR_SIZE := 5
 
@@ -115,7 +115,7 @@ func TestLogSinkToMongoDb(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_logSink.LogSaver = G_MongoDbLog
+	G_logSink.logSaver = G_MongoDbLog
 	//注意整除的影响
 	FOR_SIZE := 100
 

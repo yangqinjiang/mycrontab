@@ -104,7 +104,7 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	for _, jobPlan = range scheduler.jobPlanTable {
 		//是否过期
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-			//TODO:尝试执行任务
+			//尝试执行任务
 			scheduler.TryStartJob(jobPlan)
 			fmt.Println("执行任务:", jobPlan.Job.Name, " @ ", now.Minute(), ':', now.Second())
 			jobPlan.NextTime = jobPlan.Expr.Next(now) //更新下次执行时间
@@ -191,10 +191,10 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 			JobName:      result.ExecuteInfo.Job.Name,
 			Command:      result.ExecuteInfo.Job.Command,
 			Output:       string(result.Output),
-			PlanTime:     result.ExecuteInfo.PlanTime.UnixNano() / 1000 / 1000,
-			ScheduleTime: result.ExecuteInfo.RealTime.UnixNano() / 1000 / 1000,
-			StartTime:    result.StartTime.UnixNano() / 1000 / 1000,
-			EndTime:      result.EndTime.UnixNano() / 1000 / 1000,
+			PlanTime:     result.ExecuteInfo.PlanTime.UnixNano() / 1000000,
+			ScheduleTime: result.ExecuteInfo.RealTime.UnixNano() / 1000000,
+			StartTime:    result.StartTime.UnixNano() / 1000000,
+			EndTime:      result.EndTime.UnixNano() / 1000000,
 		}
 		if result.Err != nil {
 			jobLog.Err = result.Err.Error()

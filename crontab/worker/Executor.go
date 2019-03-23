@@ -40,19 +40,24 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 		//随机睡眠(0~1s),解决抢锁频繁问题
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
+		//尝试抢锁
 		err = jobLock.TryLock()
 		//释放锁
 		defer jobLock.Unlock()
 		if err != nil {
+			//抢锁失败,则返回
 			result.Err = err
 			result.EndTime = time.Now()
 		} else {
 			//上锁成功后,重置任务启动时间
 			result.StartTime = time.Now()
+			//TODO: 使用命令模式,优化下面的exec具体的实现类
 			//执行shell命令
 			cmd = exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
 			//执行并捕获输出
 			output, err = cmd.CombinedOutput()
+
+
 			//记录结束时间
 			result.EndTime = time.Now()
 			result.Output = output

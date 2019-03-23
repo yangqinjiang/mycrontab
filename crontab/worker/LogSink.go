@@ -12,7 +12,7 @@ type LogSink struct {
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
 	//保存日志的接口
-	LogSaver Log
+	logSaver Log
 }
 
 var (
@@ -32,7 +32,7 @@ func InitLogSink(logSaver Log) (err error) {
 		G_logSink = &LogSink{
 			logChan:        make(chan *common.JobLog, 1000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
-			LogSaver:       logSaver,
+			logSaver:       logSaver,
 		}
 		//启动一个mongodb处理协程
 		go G_logSink.writeLoop()
@@ -50,7 +50,7 @@ func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
 		logs.Error("LogSink convert interface{} to byte Error",err)
 		return
 	}
-	_,err =logSink.LogSaver.Write(b)
+	_,err =logSink.logSaver.Write(b)
 	if err != nil{
 		logs.Error("LogSink Write Error",err)
 		return

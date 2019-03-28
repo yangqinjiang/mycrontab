@@ -63,7 +63,7 @@ func TestScheduler_PushJobResult(t *testing.T) {
 type TestJobExecSuccess struct {
 }
 
-func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
+func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo,callFunc func(info *common.JobExecuteInfo) ([]byte, error))(err error)  {
 	logs.Info("正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	time.Sleep(2*time.Second)
 	return
@@ -72,7 +72,7 @@ func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
 type TestJobExecFail struct {
 }
 
-func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo)(err error)  {
+func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo,callFunc func(info *common.JobExecuteInfo) ([]byte, error))(err error)  {
 	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	time.Sleep(2*time.Second)
 	return errors.New("执行任务失败")

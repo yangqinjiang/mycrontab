@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"sync"
+	"os/exec"
 )
 
 /**
@@ -80,9 +81,19 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err err
 
 	//执行任务
 	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
-	err =scheduler.jobExecuter.Exec(jobExecuteInfo)
+	// 可动态指定 bash_command函数
+	err =scheduler.jobExecuter.Exec(jobExecuteInfo, bash_command)
 	return err
 
+}
+
+//bash的shell命令
+func bash_command(info *common.JobExecuteInfo) ([]byte, error) {
+	logs.Debug("执行shell命令",info.Job.Command);
+	//执行shell命令
+	cmd := exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
+	//执行并捕获输出
+	return cmd.CombinedOutput()
 }
 
 //重新计算任务调度状态

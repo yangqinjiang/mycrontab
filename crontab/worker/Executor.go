@@ -3,7 +3,6 @@ package worker
 import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"math/rand"
-	"os/exec"
 	"sync"
 	"time"
 )
@@ -18,11 +17,12 @@ var (
 )
 
 //执行一个任务
-func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
+func (executor *Executor) Exec(info *common.JobExecuteInfo,
+	callFunc func(info *common.JobExecuteInfo) ([]byte, error)) (err error) {
 	//启动协程
 	go func() {
 		var (
-			cmd     *exec.Cmd
+
 			output  []byte
 			err     error
 			result  *common.JobExecuteResult
@@ -51,12 +51,8 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 		} else {
 			//上锁成功后,重置任务启动时间
 			result.StartTime = time.Now()
-			//TODO: 使用命令模式,优化下面的exec具体的实现类
-			//执行shell命令
-			cmd = exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
-			//执行并捕获输出
-			output, err = cmd.CombinedOutput()
-
+			//使用闭包函数,抽离主业务代码
+			output, err =  callFunc(info)
 
 			//记录结束时间
 			result.EndTime = time.Now()

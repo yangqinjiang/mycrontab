@@ -17,12 +17,15 @@ import (
  日期：   20170310
 */
 
-// 命令接口 -- 可以保存在请求队形中，方便请求队形处理命令，具体对命令的执行体在实现这个接口的类型结构体中保存着
+//------------------------------------------------------------------------------------
+// Command为所有命令声明一个接口,调用命令对象的execute方法,就可以让接收者进行相关的动作
+// 这个接口也具备一个undo方法(未来可实现)
 type Command interface {
-	Run(info *common.JobExecuteInfo) ([]byte, error)
+	Execute(info *common.JobExecuteInfo) ([]byte, error)
 }
 
-// 请求队形，保存命令列表，在ExecuteCommand函数中遍历执行命令
+//------------------------------------------------------------------------------------
+// 这个调用者,持有一个命令对象,并在某个时间点,调用命令对象的execute()方法,将请求付诸实行
 type Invoker struct {
 	command Command
 }
@@ -32,6 +35,7 @@ func (i *Invoker) SetCommand(c Command) {
 	if i == nil {
 		return
 	}
+	fmt.Println("call invoker SetCommand",c)
 	i.command = c
 }
 
@@ -40,7 +44,8 @@ func (i *Invoker) ExecuteCommand(info *common.JobExecuteInfo) ([]byte, error) {
 	if i == nil {
 		return nil,nil
 	}
-	return i.command.Run(info)
+	fmt.Println("call invoker ExecuteCommand",i.command)
+	return i.command.Execute(info)
 }
 
 func NewInvoker() *Invoker {
@@ -49,39 +54,37 @@ func NewInvoker() *Invoker {
 
 //------------------------------------------------------------------------------------
 
-// 具体命令,实现Command接口，保存一个对该命令如何处理的执行体
+// 这个ConcreteCommand 定义了动作和接收者之间的绑定关系
+// 调用者只要调用 execute 就可以发出请求,然后由ConcreteCommand
+// 调用接收者的一个或多个动作
 type ConcreteCommandA struct {
+	Command
 	receiver ReceiverA
 }
 
-func (c *ConcreteCommandA) SetReceiver(r ReceiverA) {
-	if c == nil {
-		return
-	}
-	c.receiver = r
-}
 
 // 具体命令的执行体
-func (c *ConcreteCommandA) Run(info *common.JobExecuteInfo) {
+func (c *ConcreteCommandA) Execute(info *common.JobExecuteInfo) ([]byte, error) {
 	if c == nil {
-		return
+		return nil,nil
 	}
-	c.receiver.Execute(info)
+	return c.receiver.action(info)
 }
 
-func NewConcreteCommandA() *ConcreteCommandA {
-	return &ConcreteCommandA{}
+func NewConcreteCommandA(r ReceiverA) *ConcreteCommandA {
+	return &ConcreteCommandA{receiver:r}
 }
 
 // 针对ConcreteCommand，如何处理该命令
 type ReceiverA struct {
 }
 
-func (r *ReceiverA) Execute(info *common.JobExecuteInfo) {
+func (r *ReceiverA) action(info *common.JobExecuteInfo) ([]byte, error) {
 	if r == nil {
-		return
+		return nil,nil
 	}
-	fmt.Println("针对ConcreteCommandA，如何处理该命令")
+	fmt.Println("针对ConcreteCommandA->action，如何处理该命令,info=",info)
+	return nil,nil
 }
 
 func NewReceiverA() *ReceiverA {

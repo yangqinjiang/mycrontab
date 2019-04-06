@@ -7,8 +7,9 @@ import (
 	"time"
 )
 
-//任务执行器
+//任务执行器,也是命令的调用者
 type Executor struct {
+	command Command
 }
 
 var (
@@ -16,9 +17,12 @@ var (
 	onceexec       sync.Once
 )
 
+//设置命令对象
+func (t *Executor)SetCommand(c Command)  {
+	t.command = c
+}
 //执行一个任务
-func (executor *Executor) Exec(info *common.JobExecuteInfo,
-	callFunc func(info *common.JobExecuteInfo) ([]byte, error)) (err error) {
+func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 	//启动协程
 	go func() {
 		var (
@@ -52,7 +56,11 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo,
 			//上锁成功后,重置任务启动时间
 			result.StartTime = time.Now()
 			//使用闭包函数,抽离主业务代码
-			output, err =  callFunc(info)
+			//output, err =  callFunc(info)
+			if( nil != executor.command){
+				output, err =  executor.command.Execute(info)
+			}
+
 
 			//记录结束时间
 			result.EndTime = time.Now()

@@ -16,5 +16,9 @@ type JobLogger interface {
 }
 //任务的执行器 的接口
 type JobExecuter interface {
-	Exec(info *common.JobExecuteInfo,f func(info *common.JobExecuteInfo) ([]byte, error))(error)
+	//设置调用者
+	SetCommand(c Command)
+	//执行
+	Exec(info *common.JobExecuteInfo)(error)
+
 }

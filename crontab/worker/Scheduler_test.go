@@ -1,11 +1,11 @@
 package worker
 
 import (
-	"errors"
 	"github.com/astaxie/beego/logs"
 	"testing"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"time"
+	"errors"
 )
 
 //初始化任务调度器
@@ -61,21 +61,38 @@ func TestScheduler_PushJobResult(t *testing.T) {
 }
 //执行任务成功的
 type TestJobExecSuccess struct {
+	c Command
 }
 
-func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo,callFunc func(info *common.JobExecuteInfo) ([]byte, error))(err error)  {
+func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
 	logs.Info("正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	time.Sleep(2*time.Second)
+	if( nil != je.c){
+		_, err =  je.c.Execute(info)
+	}
 	return
+}
+//设置命令对象
+func (t *TestJobExecSuccess)SetCommand(c Command)  {
+	t.c = c
 }
 //执行任务失败的
 type TestJobExecFail struct {
+	c Command
 }
 
-func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo,callFunc func(info *common.JobExecuteInfo) ([]byte, error))(err error)  {
+func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo)(err error)  {
 	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
 	time.Sleep(2*time.Second)
-	return errors.New("执行任务失败")
+	return  errors.New("执行任务失败")
+	//if( nil != je.c){
+	//	_, err =  je.c.Execute(info)
+	//}
+	//return
+}
+//设置命令对象
+func (t *TestJobExecFail)SetCommand(c Command)  {
+	t.c = c
 }
 
 //尝试执行任务

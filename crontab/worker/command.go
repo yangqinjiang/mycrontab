@@ -3,6 +3,8 @@ package worker
 import (
 	"fmt"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/astaxie/beego/logs"
+	"os/exec"
 )
 
 /*
@@ -84,7 +86,17 @@ func (r *ReceiverA) action(info *common.JobExecuteInfo) ([]byte, error) {
 		return nil,nil
 	}
 	fmt.Println("针对ConcreteCommandA->action，如何处理该命令,info=",info)
-	return nil,nil
+
+	return r.bash_command(info)
+}
+//bash 命令
+func (r *ReceiverA)bash_command(info *common.JobExecuteInfo) ([]byte, error)  {
+	//bash的shell命令
+	logs.Debug("执行shell命令",info.Job.Command);
+	//执行shell命令
+	cmd := exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
+	//执行并捕获输出
+	return cmd.CombinedOutput()
 }
 
 func NewReceiverA() *ReceiverA {

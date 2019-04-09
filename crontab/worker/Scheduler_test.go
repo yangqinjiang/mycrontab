@@ -59,41 +59,7 @@ func TestScheduler_PushJobResult(t *testing.T) {
 		t.Fatal("PushJobResult 失败,数量== 3")
 	}
 }
-//执行任务成功的
-type TestJobExecSuccess struct {
-	c Command
-}
 
-func (je *TestJobExecSuccess)Exec(info *common.JobExecuteInfo)(err error)  {
-	logs.Info("正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
-	time.Sleep(2*time.Second)
-	if( nil != je.c){
-		_, err =  je.c.Execute(info)
-	}
-	return
-}
-//设置命令对象
-func (t *TestJobExecSuccess)SetCommand(c Command)  {
-	t.c = c
-}
-//执行任务失败的
-type TestJobExecFail struct {
-	c Command
-}
-
-func (je *TestJobExecFail)Exec(info *common.JobExecuteInfo)(err error)  {
-	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
-	time.Sleep(2*time.Second)
-	return  errors.New("执行任务失败")
-	//if( nil != je.c){
-	//	_, err =  je.c.Execute(info)
-	//}
-	//return
-}
-//设置命令对象
-func (t *TestJobExecFail)SetCommand(c Command)  {
-	t.c = c
-}
 
 //尝试执行任务
 func TestScheduler_TryStartJobSuccess(t *testing.T) {
@@ -102,7 +68,35 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal("初始化任务调度器 失败",err)
 	}
-	G_scheduler.SetJobExecuter(&TestJobExecSuccess{})
+	/**
+		// 命令接收者
+		receA := NewReceiverA()
+
+		//命令对象
+		concomA := NewConcreteCommandA(*receA)
+
+		invoker := NewInvoker()
+		//加载命令给调用者
+		invoker.SetCommand(concomA)
+
+
+		//调用者 执行 命令对象的execute函数
+		invoker.ExecuteCommand(nil)
+	 */
+	// 命令接收者
+	//receA := NewCmdReceiver()
+
+	//命令对象
+	//concomA := NewConcreteCommand(*receA)
+
+	//调用者 执行 命令对象的execute函数
+	invoker := &TestJobExecSuccessInvoker{}
+	//加载命令给调用者
+	invoker.SetCommand(CommandFactory("sh"))
+
+
+	//invoker.SetCommand()
+	G_scheduler.SetJobExecuter(invoker)
 
 	//FAIL,cron表达式是错误的,
 	job_fail := &common.Job{Name: "TryStartJob",CronExpr:"error cron",Command:"echo hello"}
@@ -142,7 +136,7 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 		t.Fatal("执行器应该是nil值",err)
 	}
 	logs.Info("设置任务的执行器")
-	G_scheduler.SetJobExecuter(&TestJobExecFail{})
+	G_scheduler.SetJobExecuter(&TestJobExecFailInvoker{})
 	//cron表达式是正确的
 	job := &common.Job{Name: "TryStartJobFail",CronExpr:"* * * * * *",Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
@@ -160,4 +154,37 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 	if err.Error() != "尚未退出,跳过执行"{
 		t.Fatal("执行任务应该是出错的",err)
 	}
+}
+
+
+//---------------------
+//执行任务成功的
+type TestJobExecSuccessInvoker struct {
+	c Command
+}
+
+func (t *TestJobExecSuccessInvoker)Exec(info *common.JobExecuteInfo)(err error)  {
+	logs.Info("TestJobExecSuccessInvoker 正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
+	time.Sleep(2*time.Second)
+	_, err =  t.c.Execute(info)
+	return
+}
+//设置命令对象
+func (t *TestJobExecSuccessInvoker)SetCommand(c Command)  {
+	logs.Info("call TestJobExecSuccessInvoker SetCommand")
+	t.c = c
+}
+//执行任务失败的
+type TestJobExecFailInvoker struct {
+	c Command
+}
+
+func (je *TestJobExecFailInvoker)Exec(info *common.JobExecuteInfo)(err error)  {
+	logs.Info("正在执行失败的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
+	time.Sleep(2*time.Second)
+	return  errors.New("执行任务失败")
+}
+//设置命令对象
+func (t *TestJobExecFailInvoker)SetCommand(c Command)  {
+	t.c = c
 }

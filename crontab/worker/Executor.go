@@ -57,6 +57,9 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 			result.StartTime = time.Now()
 			//使用闭包函数,抽离主业务代码
 			//output, err =  callFunc(info)
+			//生成一个命令对象
+			executor.SetCommand(CommandFactory(info.Job.Command))
+			//执行命令对象
 			if( nil != executor.command){
 				output, err =  executor.command.Execute(info)
 			}

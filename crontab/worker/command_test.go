@@ -7,10 +7,10 @@ import (
 func TestCommand(t *testing.T) {
 
 	// 命令接收者
-	receA := NewReceiverA()
+	receA := NewCmdReceiver()
 
 	//命令对象
-	concomA := NewConcreteCommandA(*receA)
+	concomA := NewConcreteCommand(*receA)
 
 	invoker := NewInvoker()
 	//加载命令给调用者

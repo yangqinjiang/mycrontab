@@ -59,48 +59,109 @@ func NewInvoker() *Invoker {
 // 这个ConcreteCommand 定义了动作和接收者之间的绑定关系
 // 调用者只要调用 execute 就可以发出请求,然后由ConcreteCommand
 // 调用接收者的一个或多个动作
-type ConcreteCommandA struct {
+type ConcreteCommand struct {
 	Command
-	receiver ReceiverA
+	receiver CmdReceiver
 }
 
 
 // 具体命令的执行体
-func (c *ConcreteCommandA) Execute(info *common.JobExecuteInfo) ([]byte, error) {
+func (c *ConcreteCommand) Execute(info *common.JobExecuteInfo) ([]byte, error) {
 	if c == nil {
 		return nil,nil
 	}
 	return c.receiver.action(info)
 }
 
-func NewConcreteCommandA(r ReceiverA) *ConcreteCommandA {
-	return &ConcreteCommandA{receiver:r}
+func NewConcreteCommand(r CmdReceiver) *ConcreteCommand {
+	return &ConcreteCommand{receiver:r}
 }
 
 // 针对ConcreteCommand，如何处理该命令
-type ReceiverA struct {
+type CmdReceiver struct {
+
 }
 
-func (r *ReceiverA) action(info *common.JobExecuteInfo) ([]byte, error) {
+func (r *CmdReceiver) action(info *common.JobExecuteInfo) ([]byte, error) {
 	if r == nil {
 		return nil,nil
 	}
-	fmt.Println("针对ConcreteCommandA->action，如何处理该命令,info=",info)
+	logs.Info("针对CmdReceiver->action，如何处理该命令,info=",info)
 
 	return r.bash_command(info)
 }
 //bash 命令
-func (r *ReceiverA)bash_command(info *common.JobExecuteInfo) ([]byte, error)  {
+func (r *CmdReceiver)bash_command(info *common.JobExecuteInfo) ([]byte, error)  {
+	if nil == info{
+		return nil,nil
+	}
 	//bash的shell命令
-	logs.Debug("执行shell命令",info.Job.Command);
+	logs.Info("执行具体的shell命令",info.Job.Command);
 	//执行shell命令
 	cmd := exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
 	//执行并捕获输出
 	return cmd.CombinedOutput()
 }
 
-func NewReceiverA() *ReceiverA {
-	return &ReceiverA{}
+func NewCmdReceiver() *CmdReceiver {
+	return &CmdReceiver{}
+}
+
+//-------------------------
+type ConcreteCommand2 struct {
+	Command
+	receiver CmdReceiver2
+}
+
+
+// 具体命令的执行体
+func (c *ConcreteCommand2) Execute(info *common.JobExecuteInfo) ([]byte, error) {
+	if c == nil {
+		return nil,nil
+	}
+	return c.receiver.action(info)
+}
+
+func NewConcreteCommand2(r CmdReceiver2) *ConcreteCommand2 {
+	return &ConcreteCommand2{receiver:r}
+}
+
+// 针对ConcreteCommand，如何处理该命令
+type CmdReceiver2 struct {
+
+}
+
+func (r *CmdReceiver2) action(info *common.JobExecuteInfo) ([]byte, error) {
+	if r == nil {
+		return nil,nil
+	}
+	logs.Info("针对CmdReceiver2->action，如何处理该命令,info=",info)
+
+	return nil,nil
+}
+func NewCmdReceiver2() *CmdReceiver2 {
+	return &CmdReceiver2{}
+}
+//命令对象的工厂
+func CommandFactory(name string) Command  {
+	if "sh" == name{
+		// 命令接收者
+		receA := NewCmdReceiver()
+
+		//命令对象
+		concomA := NewConcreteCommand(*receA)
+		return  concomA
+	}
+	if "bin" == name{
+		// 命令接收者
+		receA2 := NewCmdReceiver2()
+
+		//命令对象
+		concomA2 := NewConcreteCommand2(*receA2)
+		return  concomA2
+	}
+	return  nil
+
 }
 
 

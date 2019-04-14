@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+	"errors"
 )
 
 //任务执行器,也是命令的调用者
@@ -55,14 +56,16 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 		} else {
 			//上锁成功后,重置任务启动时间
 			result.StartTime = time.Now()
-			//使用闭包函数,抽离主业务代码
-			//output, err =  callFunc(info)
+			info.PrintStatus()
 			//生成一个命令对象
-			executor.SetCommand(CommandFactory(info.Job.Command))
+			executor.SetCommand(CommandFactory(info.Job.ShellName))
 			//执行命令对象
 			if( nil != executor.command){
 				output, err =  executor.command.Execute(info)
+			}else{
+				output, err = []byte{}, errors.New("不存在此类命令")
 			}
+
 
 
 			//记录结束时间

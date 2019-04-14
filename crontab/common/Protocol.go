@@ -6,12 +6,14 @@ import (
 	"github.com/gorhill/cronexpr"
 	"strings"
 	"time"
+	"github.com/astaxie/beego/logs"
 )
 
 //定时任务
 type Job struct {
 	Name     string `json:"name"`     //任务名
 	Command  string `json:"command"`  //shell命令
+	ShellName  string `json:"shellName"`  //shell命令
 	CronExpr string `json:"cronExpr"` //cron表达式
 }
 
@@ -29,6 +31,10 @@ type JobExecuteInfo struct {
 	RealTime   time.Time          //实际的调度时间
 	CancelCtx  context.Context    //取消command的context
 	CancelFunc context.CancelFunc //取消command的函数
+}
+
+func (j *JobExecuteInfo)PrintStatus()  {
+	logs.Info("正式执行任务:", j.Job.Name, " P=", j.PlanTime, " R=", j.RealTime)
 }
 
 type Response struct {

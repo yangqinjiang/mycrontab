@@ -79,20 +79,8 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err err
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
 
 	//执行任务
-	logs.Info("正式执行任务:", jobExecuteInfo.Job.Name, " P=", jobExecuteInfo.PlanTime, " R=", jobExecuteInfo.RealTime)
-
-	//----------------------------
-	// 可动态指定 bash_command函数
-	// 命令接收者
-	//receA := NewReceiverA()
-	//
-	////命令对象
-	//concomA := NewConcreteCommandA(*receA)
-	//
-	//scheduler.jobExecuter.SetCommand(concomA)
-	//----------------------------
-
 	err =scheduler.jobExecuter.Exec(jobExecuteInfo)
+
 	return err
 
 }

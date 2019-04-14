@@ -88,10 +88,6 @@ func (r *CmdReceiver) action(info *common.JobExecuteInfo) ([]byte, error) {
 	}
 	logs.Info("针对CmdReceiver->action，如何处理该命令,info=",info)
 
-	return r.bash_command(info)
-}
-//bash 命令
-func (r *CmdReceiver)bash_command(info *common.JobExecuteInfo) ([]byte, error)  {
 	if nil == info{
 		return nil,nil
 	}
@@ -103,6 +99,7 @@ func (r *CmdReceiver)bash_command(info *common.JobExecuteInfo) ([]byte, error)  
 	return cmd.CombinedOutput()
 }
 
+
 func NewCmdReceiver() *CmdReceiver {
 	return &CmdReceiver{}
 }
@@ -110,7 +107,7 @@ func NewCmdReceiver() *CmdReceiver {
 //-------------------------
 type ConcreteCommand2 struct {
 	Command
-	receiver CmdReceiver2
+	receiver NotBin
 }
 
 
@@ -122,16 +119,16 @@ func (c *ConcreteCommand2) Execute(info *common.JobExecuteInfo) ([]byte, error) 
 	return c.receiver.action(info)
 }
 
-func NewConcreteCommand2(r CmdReceiver2) *ConcreteCommand2 {
+func NewConcreteCommand2(r NotBin) *ConcreteCommand2 {
 	return &ConcreteCommand2{receiver:r}
 }
 
 // 针对ConcreteCommand，如何处理该命令
-type CmdReceiver2 struct {
+type NotBin struct {
 
 }
 
-func (r *CmdReceiver2) action(info *common.JobExecuteInfo) ([]byte, error) {
+func (r *NotBin) action(info *common.JobExecuteInfo) ([]byte, error) {
 	if r == nil {
 		return nil,nil
 	}
@@ -139,12 +136,13 @@ func (r *CmdReceiver2) action(info *common.JobExecuteInfo) ([]byte, error) {
 
 	return nil,nil
 }
-func NewCmdReceiver2() *CmdReceiver2 {
-	return &CmdReceiver2{}
+func NewNotBin() *NotBin {
+	return &NotBin{}
 }
 //命令对象的工厂
 func CommandFactory(name string) Command  {
-	if "sh" == name{
+	//默认值
+	if 0 == len(name) || "sh" == name{
 		// 命令接收者
 		receA := NewCmdReceiver()
 
@@ -152,9 +150,9 @@ func CommandFactory(name string) Command  {
 		concomA := NewConcreteCommand(*receA)
 		return  concomA
 	}
-	if "bin" == name{
+	if "not_bin" == name{
 		// 命令接收者
-		receA2 := NewCmdReceiver2()
+		receA2 := NewNotBin()
 
 		//命令对象
 		concomA2 := NewConcreteCommand2(*receA2)

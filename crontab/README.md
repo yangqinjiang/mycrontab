@@ -1,4 +1,5 @@
 #库安装,依赖模块
+`export GO111MODULE=on`
 `beego: go get github.com/astaxie/beego`
 
 `ETCD: https://github.com/etcd-io/etcd/commit/15b6a17be48dea91a11497980b9adab541add7f0`

@@ -3,8 +3,8 @@ package master
 import (
 	"context"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"sync"
 	"time"
 )

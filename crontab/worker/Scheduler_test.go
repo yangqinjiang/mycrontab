@@ -165,7 +165,7 @@ type TestJobExecSuccessInvoker struct {
 
 func (t *TestJobExecSuccessInvoker)Exec(info *common.JobExecuteInfo)(err error)  {
 	logs.Info("TestJobExecSuccessInvoker 正在执行一个成功的任务:",info.Job.Name,info.Job.Command,info.Job.CronExpr,)
-	time.Sleep(2*time.Second)
+	time.Sleep(time.Second)
 	_, err =  t.c.Execute(info)
 	return
 }

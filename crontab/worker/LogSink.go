@@ -34,13 +34,23 @@ func InitLogSink(logSaver Log) (err error) {
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
 			logSaver:       logSaver,
 		}
-		//启动一个mongodb处理协程
-		go G_logSink.writeLoop()
+
+		//批处理容量必须大于 0
+		if G_config.JobLogBatchSize > 0{
+			logs.Info("启动一个日志处理协程")
+			//启动一个日志处理协程
+			go G_logSink.writeLoop()
+		}
+
 	})
 
 	return
 }
 
+//返回内存中,日志的长度
+func (logSink *LogSink)LogChanLength() int {
+	return len(G_logSink.logChan)
+}
 //批量写入日志
 func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
 	logs.Info("LogSink批量写入日志 len=", len(batch.Logs))

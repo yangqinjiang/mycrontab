@@ -45,10 +45,17 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 		})
 
 	}
-	time.Sleep(10*time.Second)
+	if G_config.JobLogBatchSize > 0{
+		time.Sleep(10*time.Second)
+	}
+
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}
+	if G_config.JobLogBatchSize == 0 && G_logSink.LogChanLength() != FOR_SIZE {
+		t.Fatal("ERROR, 写入内存的日志size不正确", err)
+	}
+	t.Log("OK")
 
 }
 func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {

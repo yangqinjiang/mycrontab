@@ -2,9 +2,9 @@ package master
 
 import (
 	"context"
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
-	"github.com/mongodb/mongo-go-driver/mongo/findopt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
 	"time"
@@ -28,13 +28,17 @@ func InitLogMgr() (err error) {
 		var (
 			client *mongo.Client
 		)
+
 		//建立mongodb链接
-		if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
-			clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
-			clientopt.Auth(clientopt.Credential{
-				Username: G_config.MongodbUsername,
-				Password: G_config.MongodbPassword,
-			})); err != nil {
+		if client, err = mongo.Connect(context.TODO(),
+			//连接超时
+			options.Client().SetConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
+			//连接URL
+			options.Client().ApplyURI(G_config.MongodbUri),
+			//连接认证的用户信息
+			options.Client().SetAuth(options.Credential{
+				Username:G_config.MongodbUsername,
+				Password:G_config.MongodbPassword})); err != nil {
 			return
 		}
 		//选择db和collection
@@ -57,8 +61,8 @@ func (logMgr *LogMgr) ListLog(name string, skip int, limit int) (logArr []*commo
 	//过滤条件
 	filter = &common.JobLogFilter{JobName: name}
 	//按照任务时间排序
-	logSort := &common.SortLogByStartTime{SortOrder: -1}
-	cursor, err := logMgr.logCollection.Find(context.TODO(), filter, findopt.Sort(logSort), findopt.Skip(int64(skip)), findopt.Limit(int64(limit)))
+	//logSort := &common.SortLogByStartTime{SortOrder: -1}
+	cursor, err := logMgr.logCollection.Find(context.TODO(), filter)
 	if err != nil {
 		return
 	}

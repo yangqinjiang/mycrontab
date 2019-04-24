@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/mongodb/mongo-go-driver/bson/objectid"
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
-	"github.com/mongodb/mongo-go-driver/mongo/findopt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
@@ -45,12 +43,16 @@ func main() {
 	fmt.Println("使用mongodb")
 	//1,建立连接
 
-	client, err := mongo.Connect(context.TODO(), "mongodb://106.12.37.124:27017",
-		clientopt.ConnectTimeout(5*time.Second),
-		clientopt.Auth(clientopt.Credential{
-			Username: "root",
-			Password: "123456",
-		}))
+	//建立mongodb链接
+	client, err := mongo.Connect(context.TODO(),
+		//连接超时
+		options.Client().SetConnectTimeout(5*time.Second),
+		//连接URL
+		options.Client().ApplyURI("mongodb://106.12.37.124:27017"),
+		//连接认证的用户信息
+		options.Client().SetAuth(options.Credential{
+			Username:"root",
+			Password:""}));
 	if err != nil {
 		fmt.Println(err)
 		return

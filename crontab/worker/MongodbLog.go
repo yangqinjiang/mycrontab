@@ -1,12 +1,13 @@
 package worker
 
 import (
-	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/astaxie/beego/logs"
 	"context"
+	"github.com/astaxie/beego/logs"
+	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"sync"
-	"github.com/mongodb/mongo-go-driver/mongo/clientopt"
 	"time"
+
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
 
@@ -54,13 +55,18 @@ func InitMongoDbLog() (err error) {
 		var (
 			client *mongo.Client
 		)
+
+
 		//建立mongodb链接
-		if client, err = mongo.Connect(context.TODO(), G_config.MongodbUri,
-			clientopt.ConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
-			clientopt.Auth(clientopt.Credential{
-				Username: G_config.MongodbUsername,
-				Password: G_config.MongodbPassword,
-			})); err != nil {
+		if client, err = mongo.Connect(context.TODO(),
+			//连接超时
+			options.Client().SetConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
+			//连接URL
+			options.Client().ApplyURI(G_config.MongodbUri),
+			//连接认证的用户信息
+			options.Client().SetAuth(options.Credential{
+				Username:G_config.MongodbUsername,
+				Password:G_config.MongodbPassword})); err != nil {
 			return
 		}
 

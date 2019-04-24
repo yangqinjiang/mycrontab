@@ -1,5 +1,9 @@
 #库安装,依赖模块
 `export GO111MODULE=on`
+
+###  goproxy 是一个开源项目，当用户请求一个依赖库时，如果它发现本地没有这份代码就会自动请求源，然后缓存到本地，用户就可以从 goproxy.io 请求到数据
+
+`export GOPROXY=https://goproxy.io`
 `beego: go get github.com/astaxie/beego`
 
 `ETCD: https://github.com/etcd-io/etcd/commit/15b6a17be48dea91a11497980b9adab541add7f0`

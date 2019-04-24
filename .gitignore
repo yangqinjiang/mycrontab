@@ -1,5 +1,6 @@
 .idea
 *.etcd
+go.sum
 crontab/deploy/master
 crontab/master/main/bin
 

@@ -5,7 +5,7 @@
 
 `export GOPROXY=https://goproxy.io`
 ``
-
+## 
 # 课后练习
 - web增加任务超时配置项
 - worker支持超时检查

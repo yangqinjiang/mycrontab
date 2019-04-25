@@ -2,11 +2,10 @@ package worker
 
 import (
 	"errors"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"time"
-	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
+	"time"
 )
 
 /**
@@ -101,18 +100,25 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	}
 	//当前时间
 	now = time.Now()
+	//TODO: 使用最小堆， 动态排序任务
+	//  参考资料
+	//  https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/04-Heap/Course%20Code%20(C%2B%2B)/Optional-2-Min-Heap/MinHeap.h
 	//1遍历所有任务
 	for _, jobPlan = range scheduler.jobPlanTable {
-		//是否过期
+		//是否过期,小于或都等于当前时间
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
 			//尝试执行任务
 			scheduler.TryStartJob(jobPlan)
-			fmt.Println("执行任务:", jobPlan.Job.Name, " @ ", now.Minute(), ':', now.Second())
-			jobPlan.NextTime = jobPlan.Expr.Next(now) //更新下次执行时间
+			jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
 
 		}
 		//统计最近一个要过期的任务时间
-		if nearTime == nil || jobPlan.NextTime.Before(*nearTime) {
+		if nearTime == nil{ // 刚开始for第一个,则设置一个值
+			nearTime = &jobPlan.NextTime
+		}
+		//判断第二个及以后,如果是更往后的时刻,则更新它,
+		// 即 找出更晚的时刻
+		if jobPlan.NextTime.Before(*nearTime) {
 			nearTime = &jobPlan.NextTime
 		}
 	}

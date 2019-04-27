@@ -88,43 +88,16 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) (err er
 
 //重新计算任务调度状态
 func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
-	var (
-		jobPlan  *common.JobSchedulePlan
-		now      time.Time
-		nearTime *time.Time //指针
-	)
+
 	//如果任务表为空,随便睡眠多久
 	if 0 == scheduler.jobPlanManager.Size() {
 		//fmt.Println("无任务被调度")
 		scheduleAfter = 1 * time.Second
 		return
 	}
-	//当前时间
-	now = time.Now()
-	//TODO: 使用最小堆， 动态排序任务
-	//  参考资料
-	//  https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/04-Heap/Course%20Code%20(C%2B%2B)/Optional-2-Min-Heap/MinHeap.h
-	//1遍历所有任务
-	for _, jobPlan = range scheduler.jobPlanTable {
-		//是否过期,小于或都等于当前时间
-		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-			//尝试执行任务
-			scheduler.TryStartJob(jobPlan)
-			jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
 
-		}
-		//统计最近一个要过期的任务时间
-		if nearTime == nil { // 刚开始for第一个,则设置一个值
-			nearTime = &jobPlan.NextTime
-		}
-		//判断第二个及以后,如果是更往后的时刻,则更新它,
-		// 即 找出更晚的时刻
-		if jobPlan.NextTime.Before(*nearTime) {
-			nearTime = &jobPlan.NextTime
-		}
-	}
-	//下次调度间隔,(最近要执行的任务调度时间 - 当前时间)
-	scheduleAfter = (*nearTime).Sub(now)
+	//查找最早的任务,并传入  scheduler.TryStartJob 执行
+	scheduleAfter = scheduler.jobPlanManager.ExtractEarliest(scheduler.TryStartJob);
 	return
 
 }

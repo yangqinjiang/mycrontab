@@ -3,6 +3,7 @@ package worker
 import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"io"
+	"time"
 )
 
 //日志接口类
@@ -28,4 +29,6 @@ type JobPlanManager interface {
 	Insert(info *common.JobSchedulePlan)(error)
 	// 使用key 删除一个任务
 	Remove(key string)(error)
+	//找出最早
+	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration)
 }

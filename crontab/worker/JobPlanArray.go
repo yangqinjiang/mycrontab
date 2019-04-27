@@ -38,9 +38,12 @@ func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSched
 	for _, jobPlan := range j.jobPlanTable {
 		//是否过期,小于或都等于当前时间
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-			//尝试执行任务
-			tryStartJob(jobPlan)
-			jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
+			if nil != tryStartJob{
+				//尝试执行任务
+				tryStartJob(jobPlan)
+				jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
+			}
+
 
 		}
 		//统计最近一个要过期的任务时间

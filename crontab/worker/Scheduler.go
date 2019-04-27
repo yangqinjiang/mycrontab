@@ -9,30 +9,35 @@ import (
 )
 
 /**
- 调度器,遍历所有任务列表, 找出最近一个要过期的任务
- */
+调度器,遍历所有任务列表, 找出最近一个要过期的任务
+*/
 type Scheduler struct {
-	jobEventChan      chan *common.JobEvent              //etcd任务事件队列
-	jobPlanTable      map[string]*common.JobSchedulePlan //任务调度计划表内存里的任务计划表,
-	jobExecutingTable map[string]*common.JobExecuteInfo  //任务执行表
-	jobResultChan     chan *common.JobExecuteResult      //任务执行结果队列
-	jobLogger JobLogger
-	jobExecuter JobExecuter
+	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
+	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
+	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
+	jobLogger         JobLogger
+	jobExecuter       JobExecuter
+	jobPlanManager    JobPlanManager //任务调度计划表内存里的任务计划管理
 }
+
 /**
 设置任务的执行器
- */
-func (scheduler *Scheduler)SetJobExecuter(jobExecuter JobExecuter)  {
+*/
+func (scheduler *Scheduler) SetJobExecuter(jobExecuter JobExecuter) {
 	scheduler.jobExecuter = jobExecuter
 }
 
-
+/**
+设置任务计划的管理者
+*/
+func (scheduler *Scheduler) SetJobPlanManager(jobPlanManager JobPlanManager) {
+	scheduler.jobPlanManager = jobPlanManager
+}
 
 //处理任务事件
 func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	var (
 		jobSchedulePlan *common.JobSchedulePlan
-		jobExisted      bool //是否存在任务
 		err             error
 		jobExecuteInfo  *common.JobExecuteInfo //执行中的任务
 		jobExecting     bool
@@ -44,13 +49,10 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 			return
 		}
 		logs.Info("保存任务:", jobEvent.Job.Name)
-		scheduler.jobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
+		scheduler.jobPlanManager.Insert(jobSchedulePlan)
 	case common.JOB_EVENT_DELETE: //删除任务事件
-		//首先检查是否已存在此任务 (内存)
-		if jobSchedulePlan, jobExisted = scheduler.jobPlanTable[jobEvent.Job.Name]; jobExisted {
-			logs.Info("删除任务:", jobEvent.Job.Name)
-			delete(scheduler.jobPlanTable, jobEvent.Job.Name)
-		}
+		logs.Info("删除任务:", jobEvent.Job.Name)
+		scheduler.jobPlanManager.Remove(jobEvent.Job.Name)
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {
@@ -61,9 +63,9 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 }
 
 //尝试执行任务
-func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err error) {
+func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) (err error) {
 	//调度
-	if scheduler.jobExecuter == nil{
+	if scheduler.jobExecuter == nil {
 		return errors.New("还没有设置任务的执行器")
 	}
 	//执行的任务可能运行很久,1分钟会调度60次,但是只能执行1次,防止并发
@@ -78,12 +80,11 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan)(err err
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
 
 	//执行任务
-	err =scheduler.jobExecuter.Exec(jobExecuteInfo)
+	err = scheduler.jobExecuter.Exec(jobExecuteInfo)
 
 	return err
 
 }
-
 
 //重新计算任务调度状态
 func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
@@ -93,7 +94,7 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 		nearTime *time.Time //指针
 	)
 	//如果任务表为空,随便睡眠多久
-	if len(scheduler.jobPlanTable) == 0 {
+	if 0 == scheduler.jobPlanManager.Size() {
 		//fmt.Println("无任务被调度")
 		scheduleAfter = 1 * time.Second
 		return
@@ -113,7 +114,7 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 
 		}
 		//统计最近一个要过期的任务时间
-		if nearTime == nil{ // 刚开始for第一个,则设置一个值
+		if nearTime == nil { // 刚开始for第一个,则设置一个值
 			nearTime = &jobPlan.NextTime
 		}
 		//判断第二个及以后,如果是更往后的时刻,则更新它,
@@ -160,30 +161,33 @@ func (scheduler *Scheduler) scheduleLoop() {
 func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
 	scheduler.jobEventChan <- jobEvent
 }
+
 //JobEventChan etcd任务事件队列的数量
-func (scheduler *Scheduler)JobEventChanLen() int  {
+func (scheduler *Scheduler) JobEventChanLen() int {
 	return len(scheduler.jobEventChan)
 }
-
 
 //回传任务执行结果
 func (scheduler *Scheduler) PushJobResult(jobResult *common.JobExecuteResult) {
 	scheduler.jobResultChan <- jobResult
 }
+
 //回传任务执行结果 队列的数量
-func (scheduler *Scheduler)JobResultChanLen() int  {
+func (scheduler *Scheduler) JobResultChanLen() int {
 	return len(scheduler.jobResultChan)
 }
+
 //启动协程
-func (scheduler *Scheduler)Loop()  {
+func (scheduler *Scheduler) Loop() {
 	//启动协程
 	logs.Info("启动调度协程")
 	go G_scheduler.scheduleLoop()
 }
+
 //处理任务结果,记录任务的执行时间,计划时间,输出结果
 func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 
-	if result.ExecuteInfo == nil{
+	if result.ExecuteInfo == nil {
 		return
 	}
 	var (
@@ -208,7 +212,7 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 		} else {
 			jobLog.Err = ""
 		}
-		if scheduler.jobLogger != nil{
+		if scheduler.jobLogger != nil {
 			//发送给日志记录器
 			scheduler.jobLogger.Write(jobLog)
 		}
@@ -216,27 +220,26 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 	}
 }
 
-
 //单例
 var (
-	G_scheduler *Scheduler
-	oncescheduler        sync.Once
+	G_scheduler   *Scheduler
+	oncescheduler sync.Once
 )
 
-
 //初始化调度器
-func InitScheduler(jobLogger JobLogger) (err error,scheduler *Scheduler) {
+func InitScheduler(jobLogger JobLogger) (err error, scheduler *Scheduler) {
 	oncescheduler.Do(func() {
 
 		G_scheduler = &Scheduler{
-			jobEventChan:      make(chan *common.JobEvent, 1000),              //有缓冲区?
-			jobPlanTable:      make(map[string]*common.JobSchedulePlan, 1000), //内存里的任务计划表,
+			jobEventChan:      make(chan *common.JobEvent, 1000), //有缓冲区?
 			jobExecutingTable: make(map[string]*common.JobExecuteInfo),
-			jobResultChan:     make(chan *common.JobExecuteResult,1000),
+			jobResultChan:     make(chan *common.JobExecuteResult, 1000),
 		}
 
 	})
 	G_scheduler.jobLogger = jobLogger
+	//TODO:任务计划的管理
+	G_scheduler.SetJobPlanManager(NewJobPlanArray())
 	scheduler = G_scheduler
 	return
 }

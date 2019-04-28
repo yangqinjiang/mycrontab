@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-//任务执行器,也是命令的调用者
+//Goroutine任务执行器,也是命令的调用者
 type GoroutineExecutor struct {
 	JobExecuter
 	command Command

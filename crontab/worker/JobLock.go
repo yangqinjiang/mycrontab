@@ -5,7 +5,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"github.com/coreos/etcd/clientv3"
 )
-
+//TODO:将JobLock抽象接口
 //分布式锁(TXN事务)
 type JobLock struct {
 	Kv         clientv3.KV

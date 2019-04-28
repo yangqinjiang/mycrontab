@@ -13,11 +13,11 @@ import (
 */
 type Scheduler struct {
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
-	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
-	jobLogger         JobLogger
-	jobExecuter       JobExecuter
-	jobPlanManager    JobPlanManager //任务调度计划表内存里的任务计划管理
+	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
+	jobLogger         JobLogger							//日志记录器
+	jobExecuter       JobExecuter						//任务执行器
+	jobPlanManager    JobPlanManager 					//任务调度计划表内存里的任务计划管理
 }
 
 /**
@@ -168,29 +168,16 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 	)
 	//删除执行状态
 	delete(scheduler.jobExecutingTable, result.ExecuteInfo.Job.Name)
-	logs.Info("任务执行完成:", result.ExecuteInfo.Job.Name, " Es=", result.EndTime.Sub(result.StartTime), string(result.Output), " Err=", result.Err)
-	//生成执行日志
-	if result.Err != common.ERR_LOCK_ALREADY_REQUIRED {
-		jobLog = &common.JobLog{
-			JobName:      result.ExecuteInfo.Job.Name,
-			Command:      result.ExecuteInfo.Job.Command,
-			Output:       string(result.Output),
-			PlanTime:     result.ExecuteInfo.PlanTime.UnixNano() / 1000000,
-			ScheduleTime: result.ExecuteInfo.RealTime.UnixNano() / 1000000,
-			StartTime:    result.StartTime.UnixNano() / 1000000,
-			EndTime:      result.EndTime.UnixNano() / 1000000,
-		}
-		if result.Err != nil {
-			jobLog.Err = result.Err.Error()
-		} else {
-			jobLog.Err = ""
-		}
-		if scheduler.jobLogger != nil {
-			//发送给日志记录器
-			scheduler.jobLogger.Write(jobLog)
-		}
 
+	result.PrintSuccessLog()
+	//生成执行日志
+	jobLog = result.ParseJobLog()
+
+	if nil != scheduler.jobLogger  && nil != jobLog{
+		//发送给日志记录器
+		scheduler.jobLogger.Write(jobLog)
 	}
+
 }
 
 //单例

@@ -33,6 +33,34 @@ type JobExecuteInfo struct {
 	CancelFunc context.CancelFunc //取消command的函数
 }
 
+func (this *JobExecuteResult)PrintSuccessLog()  {
+	logs.Info("任务执行完成:", this.ExecuteInfo.Job.Name, " Es=",
+		this.EndTime.Sub(this.StartTime),
+		string(this.Output), " Err=", this.Err)
+}
+//使用JobExecuteResult构建JobLog对象
+func (this *JobExecuteResult)ParseJobLog() (*JobLog) {
+	//过滤无用 的日志
+	if this.Err != ERR_LOCK_ALREADY_REQUIRED {
+		return nil
+	}
+	jobLog := &JobLog{
+		JobName:      this.ExecuteInfo.Job.Name,
+		Command:      this.ExecuteInfo.Job.Command,
+		Output:       string(this.Output),
+		PlanTime:     this.ExecuteInfo.PlanTime.UnixNano() / 1000000,
+		ScheduleTime: this.ExecuteInfo.RealTime.UnixNano() / 1000000,
+		StartTime:    this.StartTime.UnixNano() / 1000000,
+		EndTime:      this.EndTime.UnixNano() / 1000000,
+	}
+	if this.Err != nil {
+		jobLog.Err = this.Err.Error()
+	} else {
+		jobLog.Err = ""
+	}
+	return  jobLog
+}
+
 func (j *JobExecuteInfo)PrintStatus()  {
 	logs.Info("正式执行任务:", j.Job.Name, " P=", j.PlanTime, " R=", j.RealTime)
 }

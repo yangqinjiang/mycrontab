@@ -114,6 +114,10 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 		t.Fatal("构建任务调度计划失败",err)
 		return
 	}
+	err = G_scheduler.TryStartJob(nil)
+	if err == nil{
+		t.Fatal("参数jobPlan为空",err)
+	}
 	err = G_scheduler.TryStartJob(jobSchedulePlan)
 	if err != nil{
 		t.Fatal("执行任务应该是正确的",err)
@@ -137,6 +141,10 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 	}
 	logs.Info("设置任务的执行器")
 	G_scheduler.SetJobExecuter(&TestJobExecFailInvoker{})
+	err = G_scheduler.TryStartJob(nil)
+	if err == nil{
+		t.Fatal("参数jobPlan为空",err)
+	}
 	//cron表达式是正确的
 	job := &common.Job{Name: "TryStartJobFail",CronExpr:"* * * * * *",Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
@@ -160,6 +168,7 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 //---------------------
 //执行任务成功的
 type TestJobExecSuccessInvoker struct {
+	JobExecuter
 	c Command
 }
 
@@ -176,6 +185,7 @@ func (t *TestJobExecSuccessInvoker)SetCommand(c Command)  {
 }
 //执行任务失败的
 type TestJobExecFailInvoker struct {
+	JobExecuter
 	c Command
 }
 

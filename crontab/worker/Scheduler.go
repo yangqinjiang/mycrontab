@@ -19,7 +19,12 @@ type Scheduler struct {
 	jobExecuter       JobExecuter						//任务执行器
 	jobPlanManager    JobPlanManager 					//任务调度计划表内存里的任务计划管理
 }
-
+/**
+日志记录器
+*/
+func (scheduler *Scheduler) SetJobLogger(jobLogger JobLogger) {
+	scheduler.jobLogger = jobLogger
+}
 /**
 设置任务的执行器
 */
@@ -65,8 +70,11 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 //尝试执行任务
 func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) (err error) {
 	//调度
-	if scheduler.jobExecuter == nil {
+	if nil == scheduler.jobExecuter  {
 		return errors.New("还没有设置任务的执行器")
+	}
+	if nil == jobPlan{
+		return errors.New("参数jobPlan不应该为空")
 	}
 	//执行的任务可能运行很久,1分钟会调度60次,但是只能执行1次,防止并发
 	//如果任务正在执行,跳过本次调度
@@ -76,11 +84,12 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) (err er
 
 	//不存在,则构建一个
 	jobExecuteInfo := common.BuildJobExecuteInfo(jobPlan)
-	//记录执行状态信息
+	//1,记录执行状态信息
 	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
 
-	//执行任务
+	//2,执行任务, 同步或异步, 取决于 jobExecuter的实现
 	err = scheduler.jobExecuter.Exec(jobExecuteInfo)
+	//TODO:3,等待任务执行结果的通知,使用回调函数?还是填写数据到jobResultChan?
 
 	return err
 
@@ -173,7 +182,7 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 	//生成执行日志
 	jobLog = result.ParseJobLog()
 
-	if nil != scheduler.jobLogger  && nil != jobLog{
+	if nil != scheduler.jobLogger{
 		//发送给日志记录器
 		scheduler.jobLogger.Write(jobLog)
 	}

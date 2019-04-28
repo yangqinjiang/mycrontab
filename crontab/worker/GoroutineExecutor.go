@@ -9,21 +9,22 @@ import (
 )
 
 //任务执行器,也是命令的调用者
-type Executor struct {
+type GoroutineExecutor struct {
+	JobExecuter
 	command Command
 }
 
 var (
-	G_executor *Executor
-	onceexec       sync.Once
+	G_GoroutineExecutor *GoroutineExecutor
+	onceexec            sync.Once
 )
 
 //设置命令对象
-func (t *Executor)SetCommand(c Command)  {
+func (t *GoroutineExecutor)SetCommand(c Command)  {
 	t.command = c
 }
 //执行一个任务
-func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
+func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error) {
 	//启动协程
 	go func() {
 		var (
@@ -84,7 +85,7 @@ func (executor *Executor) Exec(info *common.JobExecuteInfo) (err error) {
 //初始化执行器
 func InitExecutor() (err error) {
 	onceexec.Do(func() {
-		G_executor = &Executor{}
+		G_GoroutineExecutor = &GoroutineExecutor{}
 	})
 	return
 }

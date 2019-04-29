@@ -11,8 +11,8 @@ type Log interface {
 	io.Writer
 }
 
-//任务日志的接口
-type JobLogger interface {
+//任务日志缓冲器的接口
+type JobLogBuffer interface {
 	Write(jobLog *common.JobLog)
 }
 //任务的执行器 的接口

@@ -33,13 +33,13 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogBuffer.logSaver = w
+	G_jobLogMemoryBuffer.logSaver = w
 	//注意整除的影响
 	FOR_SIZE := 100
 
 	for i := 0; i < FOR_SIZE; i++ {
 
-		G_jobLogBuffer.Write(&common.JobLog{
+		G_jobLogMemoryBuffer.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})
@@ -52,7 +52,7 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}
-	if G_config.JobLogBatchSize == 0 && G_jobLogBuffer.LogChanLength() != FOR_SIZE {
+	if G_config.JobLogBatchSize == 0 && G_jobLogMemoryBuffer.LogChanLength() != FOR_SIZE {
 		t.Fatal("ERROR, 写入内存的日志size不正确", err)
 	}
 	t.Log("OK")
@@ -74,13 +74,13 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogBuffer.logSaver = w
+	G_jobLogMemoryBuffer.logSaver = w
 	//注意整除的影响
 	FOR_SIZE := 5
 
 	for i := 0; i < FOR_SIZE; i++ {
 		time.Sleep(2*time.Second)
-		G_jobLogBuffer.Write(&common.JobLog{
+		G_jobLogMemoryBuffer.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})
@@ -122,13 +122,13 @@ func TestLogSinkToMongoDb(t *testing.T) {
 		t.Fatal("InitLogSink ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogBuffer.logSaver = G_MongoDbLog
+	G_jobLogMemoryBuffer.logSaver = G_MongoDbLog
 	//注意整除的影响
 	FOR_SIZE := 100
 
 	for i := 0; i < FOR_SIZE; i++ {
 
-		G_jobLogBuffer.Write(&common.JobLog{
+		G_jobLogMemoryBuffer.Write(&common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})

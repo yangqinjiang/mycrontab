@@ -9,8 +9,8 @@ import (
 )
 
 //任务的执行日志 缓冲器
-type JobLogBuffer struct {
-	JobLogger                            //实现日志的内存记录
+type JobLogMemoryBuffer struct {
+	JobLogBuffer                      //实现日志的内存记录
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
 	//保存日志的接口实现类
@@ -19,8 +19,8 @@ type JobLogBuffer struct {
 
 var (
 	//单例
-	G_jobLogBuffer *JobLogBuffer
-	oncelog        sync.Once
+	G_jobLogMemoryBuffer *JobLogMemoryBuffer
+	oncelog              sync.Once
 )
 
 //初始化mongodb的实例
@@ -31,7 +31,7 @@ func InitLogSink(logSaver Log) (err error) {
 	oncelog.Do(func() {
 
 		//选择db和collection
-		G_jobLogBuffer = &JobLogBuffer{
+		G_jobLogMemoryBuffer = &JobLogMemoryBuffer{
 			logChan:        make(chan *common.JobLog, 1000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
 			logSaver:       logSaver,
@@ -41,7 +41,7 @@ func InitLogSink(logSaver Log) (err error) {
 		if G_config.JobLogBatchSize > 0 {
 			logs.Info("启动一个日志处理协程")
 			//启动一个日志处理协程
-			go G_jobLogBuffer.writeLoop()
+			go G_jobLogMemoryBuffer.writeLoop()
 		}
 
 	})
@@ -50,12 +50,12 @@ func InitLogSink(logSaver Log) (err error) {
 }
 
 //返回内存中,日志的长度
-func (logSink *JobLogBuffer) LogChanLength() int {
-	return len(G_jobLogBuffer.logChan)
+func (logSink *JobLogMemoryBuffer) LogChanLength() int {
+	return len(G_jobLogMemoryBuffer.logChan)
 }
 
 //发送日志
-func (logSink *JobLogBuffer) Write(jobLog *common.JobLog) {
+func (logSink *JobLogMemoryBuffer) Write(jobLog *common.JobLog) {
 	select {
 	case logSink.logChan <- jobLog: //未满
 	default:
@@ -65,12 +65,12 @@ func (logSink *JobLogBuffer) Write(jobLog *common.JobLog) {
 }
 //---------------------private func------------
 //批量写入日志
-func (logSink *JobLogBuffer) saveLogs(batch *common.LogBatch) {
+func (logSink *JobLogMemoryBuffer) saveLogs(batch *common.LogBatch) {
 	logs.Info("LogSink批量写入日志 len=", len(batch.Logs))
 
 	b, err := common.GetBytes(batch.Logs)
 	if err != nil {
-		logs.Error("JobLogBuffer convert interface{} to byte Error", err)
+		logs.Error("JobLogMemoryBuffer convert interface{} to byte Error", err)
 		return
 	}
 	if nil == logSink.logSaver {
@@ -85,7 +85,7 @@ func (logSink *JobLogBuffer) saveLogs(batch *common.LogBatch) {
 }
 
 //日志存储协程
-func (logSink *JobLogBuffer) writeLoop() {
+func (logSink *JobLogMemoryBuffer) writeLoop() {
 	var (
 		log          *common.JobLog
 		logBatch     *common.LogBatch //当前的批次

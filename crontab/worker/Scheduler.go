@@ -15,14 +15,14 @@ type Scheduler struct {
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
-	jobLogger         JobLogger							//日志记录器
-	jobExecuter       JobExecuter						//任务执行器
-	jobPlanManager    JobPlanManager 					//任务调度计划表内存里的任务计划管理
+	jobLogger         JobLogBuffer                		//日志记录器
+	jobExecuter       JobExecuter                       //任务执行器
+	jobPlanManager    JobPlanManager                    //任务调度计划表内存里的任务计划管理
 }
 /**
 日志记录器
 */
-func (scheduler *Scheduler) SetJobLogger(jobLogger JobLogger) {
+func (scheduler *Scheduler) SetJobLogBuffer(jobLogger JobLogBuffer) {
 	scheduler.jobLogger = jobLogger
 }
 /**
@@ -196,7 +196,7 @@ var (
 )
 
 //初始化调度器
-func InitScheduler(jobLogger JobLogger) (err error, scheduler *Scheduler) {
+func InitScheduler(jobLogger JobLogBuffer) (err error, scheduler *Scheduler) {
 	oncescheduler.Do(func() {
 
 		G_scheduler = &Scheduler{

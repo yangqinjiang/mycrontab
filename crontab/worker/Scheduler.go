@@ -162,7 +162,7 @@ func (scheduler *Scheduler) JobResultChanLen() int {
 //启动协程
 func (scheduler *Scheduler) Loop() {
 	//启动协程
-	logs.Info("启动调度协程")
+	logs.Info("启动任务调度协程")
 	go G_scheduler.scheduleLoop()
 }
 
@@ -207,8 +207,7 @@ func InitScheduler(jobLogger JobLogger) (err error, scheduler *Scheduler) {
 
 	})
 	G_scheduler.jobLogger = jobLogger
-	//TODO:任务计划的管理
-	G_scheduler.SetJobPlanManager(NewJobPlanArray())
+
 	scheduler = G_scheduler
 	return
 }

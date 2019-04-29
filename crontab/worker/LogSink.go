@@ -11,7 +11,7 @@ import (
 type LogSink struct {
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
-	//保存日志的接口
+	//保存日志的接口实现类
 	logSaver Log
 }
 
@@ -60,9 +60,13 @@ func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
 		logs.Error("LogSink convert interface{} to byte Error",err)
 		return
 	}
+	if nil == logSink.logSaver{
+		logs.Error("logSink.logSaver is nil")
+		return
+	}
 	_,err =logSink.logSaver.Write(b)
 	if err != nil{
-		logs.Error("LogSink Write Error",err)
+		logs.Error("logSink.logSaver Write some log Error",err)
 		return
 	}
 }

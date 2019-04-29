@@ -13,11 +13,12 @@ import (
 
 //mongodb的日志模型
 type MongoDbLog struct {
+	Log //实现Log接口方法
 	client        *mongo.Client
 	logCollection *mongo.Collection
 }
 
-
+//MongoDbLog批量写入日志
 func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
 	logs.Info("MongoDbLog批量写入日志",len(p))
 

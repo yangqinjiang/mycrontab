@@ -80,7 +80,7 @@ func main() {
 
 
 	//设置任务调度器的日志记录器
-	worker.G_scheduler.SetJobLogger(worker.G_logSink)
+	worker.G_scheduler.SetJobLogger(worker.G_jobLogBuffer)
 	//设置任务调度器的任务执行器  -> goroutine的任务执行器
 	worker.G_scheduler.SetJobExecuter(worker.G_GoroutineExecutor)
 	//设置 任务调度时间  的计算算法

@@ -1,14 +1,16 @@
 package worker
 
 import (
+	"errors"
+	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
 	"time"
-	"github.com/astaxie/beego/logs"
-	"errors"
 )
 
-type LogSink struct {
+//任务的执行日志 缓冲器
+type JobLogBuffer struct {
+	JobLogger                            //实现日志的内存记录
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
 	//保存日志的接口实现类
@@ -17,8 +19,8 @@ type LogSink struct {
 
 var (
 	//单例
-	G_logSink *LogSink
-	oncelog   sync.Once
+	G_jobLogBuffer *JobLogBuffer
+	oncelog        sync.Once
 )
 
 //初始化mongodb的实例
@@ -29,17 +31,17 @@ func InitLogSink(logSaver Log) (err error) {
 	oncelog.Do(func() {
 
 		//选择db和collection
-		G_logSink = &LogSink{
+		G_jobLogBuffer = &JobLogBuffer{
 			logChan:        make(chan *common.JobLog, 1000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
 			logSaver:       logSaver,
 		}
 
 		//批处理容量必须大于 0
-		if G_config.JobLogBatchSize > 0{
+		if G_config.JobLogBatchSize > 0 {
 			logs.Info("启动一个日志处理协程")
 			//启动一个日志处理协程
-			go G_logSink.writeLoop()
+			go G_jobLogBuffer.writeLoop()
 		}
 
 	})
@@ -48,31 +50,42 @@ func InitLogSink(logSaver Log) (err error) {
 }
 
 //返回内存中,日志的长度
-func (logSink *LogSink)LogChanLength() int {
-	return len(G_logSink.logChan)
+func (logSink *JobLogBuffer) LogChanLength() int {
+	return len(G_jobLogBuffer.logChan)
 }
+
+//发送日志
+func (logSink *JobLogBuffer) Write(jobLog *common.JobLog) {
+	select {
+	case logSink.logChan <- jobLog: //未满
+	default:
+		//队列满了就丢弃
+	}
+
+}
+//---------------------private func------------
 //批量写入日志
-func (logSink *LogSink) saveLogs(batch *common.LogBatch) {
+func (logSink *JobLogBuffer) saveLogs(batch *common.LogBatch) {
 	logs.Info("LogSink批量写入日志 len=", len(batch.Logs))
 
-	b ,err := common.GetBytes(batch.Logs)
-	if err != nil{
-		logs.Error("LogSink convert interface{} to byte Error",err)
+	b, err := common.GetBytes(batch.Logs)
+	if err != nil {
+		logs.Error("JobLogBuffer convert interface{} to byte Error", err)
 		return
 	}
-	if nil == logSink.logSaver{
+	if nil == logSink.logSaver {
 		logs.Error("logSink.logSaver is nil")
 		return
 	}
-	_,err =logSink.logSaver.Write(b)
-	if err != nil{
-		logs.Error("logSink.logSaver Write some log Error",err)
+	_, err = logSink.logSaver.Write(b)
+	if err != nil {
+		logs.Error("logSink.logSaver Write some log Error", err)
 		return
 	}
 }
 
 //日志存储协程
-func (logSink *LogSink) writeLoop() {
+func (logSink *JobLogBuffer) writeLoop() {
 	var (
 		log          *common.JobLog
 		logBatch     *common.LogBatch //当前的批次
@@ -124,16 +137,6 @@ func (logSink *LogSink) writeLoop() {
 			logBatch = nil
 
 		}
-	}
-
-}
-
-//发送日志
-func (logSink *LogSink) Write(jobLog *common.JobLog) {
-	select {
-	case logSink.logChan <- jobLog: //未满
-	default:
-		//队列满了就丢弃
 	}
 
 }

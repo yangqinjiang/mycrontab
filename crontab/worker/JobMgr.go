@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
@@ -11,10 +12,11 @@ import (
 )
 
 type JobMgr struct {
-	client  *clientv3.Client
-	kv      clientv3.KV
-	lease   clientv3.Lease
-	watcher clientv3.Watcher
+	jobEventReceiver JobEventReceiver
+	client           *clientv3.Client
+	kv               clientv3.KV
+	lease            clientv3.Lease
+	watcher          clientv3.Watcher
 }
 
 var (
@@ -23,6 +25,9 @@ var (
 	onceJobMgr     sync.Once
 )
 
+func (jobMgr *JobMgr)SetJobEventReceiver(jobEventReceiver JobEventReceiver)  {
+	jobMgr.jobEventReceiver = jobEventReceiver
+}
 //初始化管理器
 func InitJobMgr() (err error) {
 	onceJobMgr.Do(func() {
@@ -86,7 +91,8 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 			//TODO:是把这个job同步给scheduler(调度协程)
 			fmt.Println("当前任务=", jobEvent.Job.Name, jobEvent.Job.Command)
-			G_scheduler.PushJobEvent(jobEvent)
+			//推送给scheduler
+			jobMgr.PushToScheduler(jobEvent)
 		}
 
 	}
@@ -124,7 +130,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 
 				}
 				//推送给scheduler
-				G_scheduler.PushJobEvent(jobEvent)
+				jobMgr.PushToScheduler(jobEvent)
 			}
 		}
 
@@ -140,6 +146,14 @@ func (jobMgr *JobMgr) CreateJobLock(jobName string) (jobLock *JobLock) {
 	return
 }
 
+//推送给scheduler
+func (jobMgr *JobMgr)PushToScheduler(jobEvent *common.JobEvent)  {
+	if nil != jobMgr.jobEventReceiver {
+		jobMgr.jobEventReceiver.Push(jobEvent)
+	}else{
+		logs.Error("没设置JobEventReceiver对象")
+	}
+}
 //监听强杀任务通知
 func (jobMgr *JobMgr) watchKiller() (err error) {
 
@@ -167,7 +181,7 @@ func (jobMgr *JobMgr) watchKiller() (err error) {
 					job = &common.Job{Name: jobName}
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 					//推送给scheduler
-					G_scheduler.PushJobEvent(jobEvent)
+					jobMgr.PushToScheduler(jobEvent)
 				case mvccpb.DELETE: //killer标记过期,被自动删除
 					//不关心此操作
 				}

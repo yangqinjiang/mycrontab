@@ -26,3 +26,7 @@ type JobPlanManager interface {
 	//找出最早
 	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration)
 }
+//推送任务事件的管理者
+type JobEventReceiver interface {
+	Push(jobEvent *common.JobEvent)
+}

@@ -12,6 +12,7 @@ import (
 调度器,遍历所有任务列表, 找出最近一个要过期的任务
 */
 type Scheduler struct {
+	JobEventReceiver                                    //推送任务事件的接口
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表

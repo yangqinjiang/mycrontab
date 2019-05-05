@@ -74,6 +74,8 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
+	//设置 推送任务事件的接收者
+	worker.G_jobMgr.SetJobEventReceiver(worker.G_scheduler);
 	//----------------------任务调度器--------------------------
 	// 使用 [ 任务管理器推给的任务数据 ],经过 [JobPlanManager调度时间排序] 得到最先应该执行的任务,
 	// 再[同步或JobExecuter异步执行],最后 使用[JobLogger记录任务的执行日志]

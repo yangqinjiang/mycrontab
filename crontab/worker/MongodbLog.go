@@ -19,11 +19,11 @@ type MongoDbLog struct {
 }
 
 //MongoDbLog批量写入日志
-func (mongodb *MongoDbLog) Write(jobLog *common.JobLog) (n int, err error) {
+func (mongodb *MongoDbLog) Write(jobLog *common.LogBatch) (n int, err error) {
 	logs.Info("MongoDbLog批量写入日志",jobLog)
 
 	var log []*common.JobLog
-	log = append(log,jobLog )
+	log = jobLog.Logs
 	//err = common.GetInterface(p,&log)
 	//if err != nil {
 	//	logs.Error("convert byte to JobLog err", err)

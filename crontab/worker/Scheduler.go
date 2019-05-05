@@ -184,7 +184,9 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 
 	if nil != scheduler.jobLogger{
 		//发送给日志记录器
-		scheduler.jobLogger.Write(jobLog)
+		dd := make([]*common.JobLog,1)
+		dd = append(dd, jobLog)
+		scheduler.jobLogger.Write(&common.LogBatch{dd})
 	}
 
 }

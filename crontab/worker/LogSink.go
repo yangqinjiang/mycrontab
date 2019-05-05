@@ -10,11 +10,9 @@ import (
 
 //任务的执行日志 缓冲器
 type JobLogMemoryBuffer struct {
-	JobLoger 							//日志记录接口
+	JobLoger                             //日志记录接口
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
-	//保存日志的接口实现类
-	//logSaver Log
 }
 
 var (
@@ -32,7 +30,7 @@ func InitJobLogMemoryBuffer(jobLoger JobLoger) (err error) {
 
 		//选择db和collection
 		G_jobLogMemoryBuffer = &JobLogMemoryBuffer{
-			logChan:        make(chan *common.JobLog, 1000),   //日志队列
+			logChan:        make(chan *common.JobLog, 10000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
 			JobLoger:       jobLoger,
 		}
@@ -55,14 +53,19 @@ func (logSink *JobLogMemoryBuffer) LogChanLength() int {
 }
 
 //发送日志
-func (logSink *JobLogMemoryBuffer) Write(jobLog *common.JobLog)(n int, err error) {
-	select {
-	case logSink.logChan <- jobLog: //未满
-	default:
-		//队列满了就丢弃
+func (logSink *JobLogMemoryBuffer) Write(jobLog *common.LogBatch) (n int, err error) {
+	logs.Debug("Batch write jobLog to logChan, len=", len(jobLog.Logs))
+	for _, log := range jobLog.Logs {
+		select {
+		case logSink.logChan <- log: //未满
+		default:
+			//队列满了就丢弃
+		}
 	}
+
 	return 0, nil
 }
+
 //---------------------private func------------
 //批量写入日志
 func (logSink *JobLogMemoryBuffer) saveLogs(batch *common.LogBatch) {
@@ -73,9 +76,9 @@ func (logSink *JobLogMemoryBuffer) saveLogs(batch *common.LogBatch) {
 		return
 	}
 
-	logs.Info("写入一个Logs[0]----->")
-	//TODO:应该批量写入
-	_, err := logSink.JobLoger.Write(batch.Logs[0])
+	logs.Info("批量写入Logs----->")
+	//批量写入
+	_, err := logSink.JobLoger.Write(batch)
 	logs.Info("写入完成<------")
 	if err != nil {
 		logs.Error("logSink.JobLoger Write some log Error", err)
@@ -100,7 +103,7 @@ func (logSink *JobLogMemoryBuffer) writeLoop() {
 			if logBatch == nil {
 				logBatch = &common.LogBatch{}
 				//让这个批次超时自动提交(给1s的时间)
-
+				logs.Debug("start commitTimer")
 				//闭包的作用,防止logBatch被修改后,影响到chan
 				commitTimer = time.AfterFunc(time.Duration(G_config.JobLogCommitTimeout)*time.Millisecond,
 					func(batch *common.LogBatch) func() {
@@ -116,7 +119,7 @@ func (logSink *JobLogMemoryBuffer) writeLoop() {
 			logBatch.Logs = append(logBatch.Logs, log)
 			//如果批次满了,就发送
 			if len(logBatch.Logs) >= G_config.JobLogBatchSize {
-				logs.Info("如果批次满了,就发送")
+				logs.Info("如果批次满了,就发送 len=",len(logBatch.Logs)," , JobLogBatchSize= ",G_config.JobLogBatchSize)
 				//发送日志
 				logSink.saveLogs(logBatch)
 				//清空

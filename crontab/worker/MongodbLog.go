@@ -13,21 +13,22 @@ import (
 
 //mongodb的日志模型
 type MongoDbLog struct {
-	Log //实现Log接口方法
+	JobLoger //实现Log接口方法
 	client        *mongo.Client
 	logCollection *mongo.Collection
 }
 
 //MongoDbLog批量写入日志
-func (mongodb *MongoDbLog) Write(p []byte) (n int, err error) {
-	logs.Info("MongoDbLog批量写入日志",len(p))
+func (mongodb *MongoDbLog) Write(jobLog *common.JobLog) (n int, err error) {
+	logs.Info("MongoDbLog批量写入日志",jobLog)
 
-	var log []common.JobLog
-	err = common.GetInterface(p,&log)
-	if err != nil {
-		logs.Error("convert byte to JobLog err", err)
-		return 0,err
-	}
+	var log []*common.JobLog
+	log = append(log,jobLog )
+	//err = common.GetInterface(p,&log)
+	//if err != nil {
+	//	logs.Error("convert byte to JobLog err", err)
+	//	return 0,err
+	//}
 	doc := make([]interface{}, len(log))
 	for _,i := range log {
 		logs.Debug(i)

@@ -50,7 +50,7 @@ func main() {
 	//logs.Info("初始化mongodb的实例")
 	testWriter = &worker.ConsoleLog{}
 
-	err = worker.InitLogSink(testWriter)
+	err = worker.InitJobLogMemoryBuffer(testWriter)
 	if err != nil {
 		goto ERR
 	}

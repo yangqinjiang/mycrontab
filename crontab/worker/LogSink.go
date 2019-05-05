@@ -10,11 +10,11 @@ import (
 
 //任务的执行日志 缓冲器
 type JobLogMemoryBuffer struct {
-	JobLogBuffer                      //实现日志的内存记录
+	JobLoger 							//日志记录接口
 	logChan        chan *common.JobLog   //日志队列
 	autoCommitChan chan *common.LogBatch //提交日志的信息
 	//保存日志的接口实现类
-	logSaver Log
+	//logSaver Log
 }
 
 var (
@@ -23,9 +23,9 @@ var (
 	oncelog              sync.Once
 )
 
-//初始化mongodb的实例
-func InitLogSink(logSaver Log) (err error) {
-	if nil == logSaver {
+//初始化日志缓存器
+func InitJobLogMemoryBuffer(jobLoger JobLoger) (err error) {
+	if nil == jobLoger {
 		return errors.New("必须传入common.Log的实现类")
 	}
 	oncelog.Do(func() {
@@ -34,7 +34,7 @@ func InitLogSink(logSaver Log) (err error) {
 		G_jobLogMemoryBuffer = &JobLogMemoryBuffer{
 			logChan:        make(chan *common.JobLog, 1000),   //日志队列
 			autoCommitChan: make(chan *common.LogBatch, 1000), //提交日志的信息
-			logSaver:       logSaver,
+			JobLoger:       jobLoger,
 		}
 
 		//批处理容量必须大于 0
@@ -55,31 +55,30 @@ func (logSink *JobLogMemoryBuffer) LogChanLength() int {
 }
 
 //发送日志
-func (logSink *JobLogMemoryBuffer) Write(jobLog *common.JobLog) {
+func (logSink *JobLogMemoryBuffer) Write(jobLog *common.JobLog)(n int, err error) {
 	select {
 	case logSink.logChan <- jobLog: //未满
 	default:
 		//队列满了就丢弃
 	}
-
+	return 0, nil
 }
 //---------------------private func------------
 //批量写入日志
 func (logSink *JobLogMemoryBuffer) saveLogs(batch *common.LogBatch) {
-	logs.Info("LogSink批量写入日志 len=", len(batch.Logs))
+	logs.Info("LogSink批量写入日志 数量=", len(batch.Logs))
 
-	b, err := common.GetBytes(batch.Logs)
-	if err != nil {
-		logs.Error("JobLogMemoryBuffer convert interface{} to byte Error", err)
+	if nil == logSink.JobLoger {
+		logs.Error("logSink.JobLoger is nil")
 		return
 	}
-	if nil == logSink.logSaver {
-		logs.Error("logSink.logSaver is nil")
-		return
-	}
-	_, err = logSink.logSaver.Write(b)
+
+	logs.Info("写入一个Logs[0]----->")
+	//TODO:应该批量写入
+	_, err := logSink.JobLoger.Write(batch.Logs[0])
+	logs.Info("写入完成<------")
 	if err != nil {
-		logs.Error("logSink.logSaver Write some log Error", err)
+		logs.Error("logSink.JobLoger Write some log Error", err)
 		return
 	}
 }

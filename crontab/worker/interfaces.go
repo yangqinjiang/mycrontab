@@ -2,18 +2,12 @@ package worker
 
 import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"io"
 	"time"
 )
 
 //日志接口类
-type Log interface {
-	io.Writer
-}
-
-//任务日志缓冲器的接口
-type JobLogBuffer interface {
-	Write(jobLog *common.JobLog)
+type JobLoger interface {
+	Write(jobLog *common.JobLog) (n int, err error)
 }
 //任务的执行器 的接口
 type JobExecuter interface {

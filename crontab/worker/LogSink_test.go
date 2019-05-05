@@ -11,9 +11,9 @@ import (
 type TestWriter struct {
 }
 
-func (w *TestWriter) Write(p []byte) (n int, err error) {
+func (w *TestWriter) Write(jobLog *common.JobLog) (n int, err error) {
 
-	fmt.Println(len(p)) //只打印 p的长度
+	fmt.Println("call TestWriter ,print =>",jobLog) //只打印 p的长度
 	return 0, nil
 }
 
@@ -28,19 +28,19 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 
 	w := &TestWriter{}
 
-	err = InitLogSink(w)
+	err = InitJobLogMemoryBuffer(w)
 	if err != nil {
-		t.Fatal("InitLogSink ERROR", err)
+		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogMemoryBuffer.logSaver = w
+	//G_jobLogMemoryBuffer.JobLoger = w
 	//注意整除的影响
 	FOR_SIZE := 100
 
 	for i := 0; i < FOR_SIZE; i++ {
 
 		G_jobLogMemoryBuffer.Write(&common.JobLog{
-			JobName: "JobName is" + strconv.Itoa(i),
+			JobName: "JobName is " + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		})
 
@@ -69,12 +69,12 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 
 	w := &TestWriter{}
 
-	err = InitLogSink(w)
+	err = InitJobLogMemoryBuffer(w)
 	if err != nil {
-		t.Fatal("InitLogSink ERROR", err)
+		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogMemoryBuffer.logSaver = w
+	G_jobLogMemoryBuffer.JobLoger = w
 	//注意整除的影响
 	FOR_SIZE := 5
 
@@ -117,12 +117,12 @@ func TestLogSinkToMongoDb(t *testing.T) {
 		t.Fatal("InitMongoDbLog error,单例模式错误")
 	}
 
-	err = InitLogSink(G_MongoDbLog)
+	err = InitJobLogMemoryBuffer(G_MongoDbLog)
 	if err != nil {
-		t.Fatal("InitLogSink ERROR", err)
+		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogMemoryBuffer.logSaver = G_MongoDbLog
+	G_jobLogMemoryBuffer.JobLoger = G_MongoDbLog
 	//注意整除的影响
 	FOR_SIZE := 100
 
@@ -150,7 +150,7 @@ func TestLogSinkNoWriter(t *testing.T) {
 	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
 	G_config.JobLogBatchSize = 10        //日志批次大小
 
-	err = InitLogSink(nil)
+	err = InitJobLogMemoryBuffer(nil)
 	if err == nil{
 		t.Fatal("错误,必须传入common.Log的实现类")
 	}

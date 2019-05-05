@@ -21,13 +21,14 @@ type JobMgr struct {
 
 var (
 	//单例
-	G_jobMgr *JobMgr
-	onceJobMgr     sync.Once
+	G_jobMgr   *JobMgr
+	onceJobMgr sync.Once
 )
 
-func (jobMgr *JobMgr)SetJobEventReceiver(jobEventReceiver JobEventReceiver)  {
+func (jobMgr *JobMgr) SetJobEventReceiver(jobEventReceiver JobEventReceiver) {
 	jobMgr.jobEventReceiver = jobEventReceiver
 }
+
 //初始化管理器
 func InitJobMgr() (err error) {
 	onceJobMgr.Do(func() {
@@ -71,12 +72,10 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 	var (
 		getResp            *clientv3.GetResponse
 		kvpair             *mvccpb.KeyValue
-		job                *common.Job
 		watchStartRevision int64
 		watchChan          clientv3.WatchChan
 		watchResp          clientv3.WatchResponse
 		watchEvent         *clientv3.Event
-		jobEvent           *common.JobEvent
 	)
 	//1,get一下/cron/jobs目录下的所有任务,并且获知当前集群的revision
 	if getResp, err = jobMgr.kv.Get(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithPrefix()); err != nil {
@@ -84,17 +83,8 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 	}
 	//当前有哪些任务
 	for _, kvpair = range getResp.Kvs {
-		//反序列化json,得到job
-		if job, err = common.UnpackJob(kvpair.Value); err == nil {
-			//反序列化成功
-
-			jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
-			//TODO:是把这个job同步给scheduler(调度协程)
-			fmt.Println("当前任务=", jobEvent.Job.Name, jobEvent.Job.Command)
-			//推送给scheduler
-			jobMgr.PushToScheduler(jobEvent)
-		}
-
+		//反序列化json,得到job,并推送保存任务的事件到Scheduler
+		jobMgr.PushSaveEventToScheduler(string(kvpair.Key),kvpair.Value)
 	}
 
 	//2,从该revision向后监听变化事件
@@ -110,27 +100,12 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 			for _, watchEvent = range watchResp.Events {
 				switch watchEvent.Type {
 				case mvccpb.PUT: //任务保存
-					if job, err = common.UnpackJob(watchEvent.Kv.Value); err != nil {
-						continue
-					}
-					jobName := common.ExtractJobName(string(watchEvent.Kv.Key))
-					//构建一个更新event事件
-					fmt.Println("更新任务", jobName)
-					jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
-
+					jobMgr.PushSaveEventToScheduler(string(watchEvent.Kv.Key), watchEvent.Kv.Value)
 				case mvccpb.DELETE: //任务被删除了
-					// Delete /cron/jobs/job10
-					jobName := common.ExtractJobName(string(watchEvent.Kv.Key))
-					job = &common.Job{
-						Name: jobName,
-					}
-					fmt.Println("删除任务", jobName)
-					//构建一个删除event
-					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
-
+					jobMgr.PushDeleteEventToScheduler(string(watchEvent.Kv.Key))
+				default:
+					//ingore
 				}
-				//推送给scheduler
-				jobMgr.PushToScheduler(jobEvent)
 			}
 		}
 
@@ -147,23 +122,21 @@ func (jobMgr *JobMgr) CreateJobLock(jobName string) (jobLock *JobLock) {
 }
 
 //推送给scheduler
-func (jobMgr *JobMgr)PushToScheduler(jobEvent *common.JobEvent)  {
+func (jobMgr *JobMgr) PushToScheduler(jobEvent *common.JobEvent) {
 	if nil != jobMgr.jobEventReceiver {
 		jobMgr.jobEventReceiver.Push(jobEvent)
-	}else{
+	} else {
 		logs.Error("没设置JobEventReceiver对象")
 	}
 }
+
 //监听强杀任务通知
 func (jobMgr *JobMgr) watchKiller() (err error) {
 
 	var (
-		job        *common.Job
 		watchChan  clientv3.WatchChan
 		watchResp  clientv3.WatchResponse
 		watchEvent *clientv3.Event
-		jobEvent   *common.JobEvent
-		jobName    string
 	)
 
 	//2,从该revision向后监听变化事件
@@ -177,11 +150,7 @@ func (jobMgr *JobMgr) watchKiller() (err error) {
 			for _, watchEvent = range watchResp.Events {
 				switch watchEvent.Type {
 				case mvccpb.PUT: //杀死任务事件
-					jobName = common.ExtractKillerName(string(watchEvent.Kv.Key))
-					job = &common.Job{Name: jobName}
-					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
-					//推送给scheduler
-					jobMgr.PushToScheduler(jobEvent)
+					jobMgr.PushKillEventToScheduler(string(watchEvent.Kv.Key))
 				case mvccpb.DELETE: //killer标记过期,被自动删除
 					//不关心此操作
 				}
@@ -192,4 +161,43 @@ func (jobMgr *JobMgr) watchKiller() (err error) {
 	}()
 
 	return
+}
+
+//推送保存任务的事件到Scheduler
+func (jobMgr *JobMgr) PushSaveEventToScheduler(jobKey string, value []byte) {
+	var job *common.Job
+	var err error
+	if job, err = common.UnpackJob(value); err != nil {
+		return
+	}
+	//反序列化成功
+	jobName := common.ExtractJobName(jobKey)
+	//构建一个更新event事件
+	fmt.Println("更新任务", jobName)
+	jobEvent := common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
+	//推送给scheduler
+	jobMgr.PushToScheduler(jobEvent)
+}
+
+//推送删除任务的事件到Scheduler
+func (jobMgr *JobMgr) PushDeleteEventToScheduler(jobKey string) {
+	// Delete /cron/jobs/job10
+	jobName := common.ExtractJobName(jobKey)
+	job := &common.Job{
+		Name: jobName,
+	}
+	fmt.Println("删除任务", jobName)
+	//构建一个删除event
+	jobEvent := common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
+	//推送给scheduler
+	jobMgr.PushToScheduler(jobEvent)
+}
+
+//推送强杀任务的事件到Scheduler
+func (jobMgr *JobMgr) PushKillEventToScheduler(jobKey string) {
+	jobName := common.ExtractKillerName(jobKey)
+	job := &common.Job{Name: jobName}
+	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
+	//推送给scheduler
+	jobMgr.PushToScheduler(jobEvent)
 }

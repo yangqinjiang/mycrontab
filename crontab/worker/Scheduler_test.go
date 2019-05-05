@@ -122,6 +122,32 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 	if err != nil{
 		t.Fatal("执行任务应该是正确的",err)
 	}
+	//处理任务执行的结果
+	_,err = G_scheduler.handleJobResult(nil)
+	if (nil == err){
+		t.Fatal("处理任务执行的结果应该是失败的",err)
+	}
+	jobExecuteInfo := common.BuildJobExecuteInfo(jobSchedulePlan)
+	//任务执行的结果
+	result := &common.JobExecuteResult{
+		ExecuteInfo: jobExecuteInfo,
+		Output:      make([]byte, 0),
+		StartTime:   time.Now(),
+	}
+	//处理任务执行的结果
+	_,err = G_scheduler.handleJobResult(result)
+	if (nil == err){
+		t.Fatal("处理任务执行的结果应该是失败的",err)
+	}
+
+	//设置日志记录器
+	w := &TestWriter{}
+	G_scheduler.SetJobLogBuffer(w)
+	_,err = G_scheduler.handleJobResult(result)
+	if (nil != err){
+		t.Fatal("处理任务执行的结果应该是成功的",err)
+	}
+
 }
 
 

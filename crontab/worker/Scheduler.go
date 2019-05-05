@@ -167,10 +167,10 @@ func (scheduler *Scheduler) Loop() {
 }
 
 //处理任务结果,记录任务的执行时间,计划时间,输出结果
-func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
+func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult)(n int, err error) {
 
-	if result.ExecuteInfo == nil {
-		return
+	if nil == result || result.ExecuteInfo == nil {
+		return 0, errors.New("日志对象不能为空")
 	}
 	var (
 		jobLog *common.JobLog
@@ -186,7 +186,9 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult) {
 		//发送给日志记录器
 		dd := make([]*common.JobLog,1)
 		dd = append(dd, jobLog)
-		scheduler.jobLogger.Write(&common.LogBatch{dd})
+		return scheduler.jobLogger.Write(&common.LogBatch{dd})
+	}else{
+		return 0, errors.New("没设置日志记录器")
 	}
 
 }

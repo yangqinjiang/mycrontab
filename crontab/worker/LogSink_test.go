@@ -15,7 +15,10 @@ func (w *TestWriter) Write(jobLog *common.LogBatch) (n int, err error) {
 
 	logs.Debug("call TestWriter ,print =>") //只打印 p的长度
 	for _,log := range jobLog.Logs{
-		logs.Debug("one log.Name=",log.JobName)
+		if nil != log{
+			logs.Debug("one log.Name=",log.JobName)
+		}
+
 	}
 	return 0, nil
 }
@@ -38,7 +41,7 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 	//避免单例模式的影响
 	//G_jobLogMemoryBuffer.JobLoger = w
 	//注意整除的影响
-	FOR_SIZE := 1001
+	FOR_SIZE := 1002
 
 	dd := make([]*common.JobLog,FOR_SIZE)
 
@@ -50,10 +53,10 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 		}
 		dd[i] = d
 	}
-	logs.Debug("1 dd len =",len(dd))
 	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
 	if G_config.JobLogBatchSize > 0{
-		time.Sleep(20*time.Second)
+		time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
+
 	}
 
 	if err != nil {
@@ -87,16 +90,17 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 
 	dd := make([]*common.JobLog,FOR_SIZE)
 	for i := 0; i < FOR_SIZE; i++ {
-		time.Sleep(2*time.Second)
+		//time.Sleep(2*time.Second)
 		d:= &common.JobLog{
-			JobName: "JobName is" + strconv.Itoa(i),
+			JobName: "JobName is " + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		}
-		dd = append(dd, d)
+		dd[i] = d
 	}
 	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
 
-	time.Sleep(10*time.Second)
+	time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
+
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}
@@ -110,7 +114,7 @@ func TestLogSinkToMongoDb(t *testing.T) {
 		t.Fatal("Config error", err)
 	}
 	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
-	G_config.JobLogBatchSize = 10        //日志批次大小
+	G_config.JobLogBatchSize = 100        //日志批次大小
 
 	//第一次实例化
 	err = InitMongoDbLog()
@@ -134,17 +138,17 @@ func TestLogSinkToMongoDb(t *testing.T) {
 	//避免单例模式的影响
 	G_jobLogMemoryBuffer.JobLoger = G_MongoDbLog
 	//注意整除的影响
-	FOR_SIZE := 100
+	FOR_SIZE := 10
 	dd := make([]*common.JobLog,FOR_SIZE)
 	for i := 0; i < FOR_SIZE; i++ {
 		d := &common.JobLog{
 			JobName: "JobName is" + strconv.Itoa(i),
 			Err:     "This is Error " + strconv.Itoa(i),
 		}
-		dd = append(dd, d)
+		dd[i] = d
 	}
 	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
-	time.Sleep(10*time.Second)
+	time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}

@@ -20,29 +20,21 @@ type MongoDbLog struct {
 
 //MongoDbLog批量写入日志
 func (mongodb *MongoDbLog) Write(jobLog *common.LogBatch) (n int, err error) {
-	logs.Info("MongoDbLog批量写入日志",jobLog)
-
-	var log []*common.JobLog
-	log = jobLog.Logs
-	//err = common.GetInterface(p,&log)
-	//if err != nil {
-	//	logs.Error("convert byte to JobLog err", err)
-	//	return 0,err
-	//}
-	doc := make([]interface{}, len(log))
-	for _,i := range log {
-		logs.Debug(i)
-		doc = append(doc, i)
+	logs.Info("MongoDbLog批量写入日志" )
+	doc := make([]interface{}, len(jobLog.Logs))
+	for key,value := range jobLog.Logs {
+		doc[key] = value
 	}
 
+	logs.Debug("写入日志到mongoDb,日志数量len=",len(doc))
 	_, err = mongodb.logCollection.InsertMany(context.TODO(),doc)
-	n = 0
+
 	if err != nil {
-		logs.Error("写入日志出错了", err)
+		logs.Error("日志写入到mongoDb,失败", err)
 		return  0,err
 	}
-
-	return 0,nil
+	logs.Debug("日志写入到mongoDb, 成功")
+	return len(doc),nil
 }
 
 var (
@@ -69,8 +61,10 @@ func InitMongoDbLog() (err error) {
 			options.Client().SetAuth(options.Credential{
 				Username:G_config.MongodbUsername,
 				Password:G_config.MongodbPassword})); err != nil {
+					logs.Error("连接mongoDb失败")
 			return
 		}
+		logs.Debug("连接mongoDb成功")
 
 		//选择db和collection
 		G_MongoDbLog = &MongoDbLog{

@@ -11,7 +11,7 @@ type JobEventPusher struct {
 }
 
 //推送保存任务的事件到Scheduler
-func (jobMgr *JobEventPusher) PushSaveEventToScheduler(jobKey string, value []byte) {
+func (this *JobEventPusher) PushSaveEventToScheduler(jobKey string, value []byte) {
 	var job *common.Job
 	var err error
 	if job, err = common.UnpackJob(value); err != nil {
@@ -23,11 +23,11 @@ func (jobMgr *JobEventPusher) PushSaveEventToScheduler(jobKey string, value []by
 	fmt.Println("推送保存任务的事件到Scheduler", jobName)
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 	//推送给scheduler
-	jobMgr.PushToScheduler(jobEvent)
+	this.PushToScheduler(jobEvent)
 }
 
 //推送删除任务的事件到Scheduler
-func (jobMgr *JobEventPusher) PushDeleteEventToScheduler(jobKey string) {
+func (this *JobEventPusher) PushDeleteEventToScheduler(jobKey string) {
 	// Delete /cron/jobs/job10
 	jobName := common.ExtractJobName(jobKey)
 	job := &common.Job{
@@ -37,22 +37,22 @@ func (jobMgr *JobEventPusher) PushDeleteEventToScheduler(jobKey string) {
 	//构建一个删除event
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 	//推送给scheduler
-	jobMgr.PushToScheduler(jobEvent)
+	this.PushToScheduler(jobEvent)
 }
 
 //推送强杀任务的事件到Scheduler
-func (jobMgr *JobEventPusher) PushKillEventToScheduler(jobKey string) {
+func (this *JobEventPusher) PushKillEventToScheduler(jobKey string) {
 	jobName := common.ExtractKillerName(jobKey)
 	fmt.Println("推送强杀任务的事件到Scheduler", jobName)
 	job := &common.Job{Name: jobName}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	//推送给scheduler
-	jobMgr.PushToScheduler(jobEvent)
+	this.PushToScheduler(jobEvent)
 }
 //推送给scheduler
-func (jobMgr *JobEventPusher) PushToScheduler(jobEvent *common.JobEvent) {
-	if nil != jobMgr.JobEventReceiver {
-		jobMgr.JobEventReceiver.PushEvent(jobEvent)
+func (this *JobEventPusher) PushToScheduler(jobEvent *common.JobEvent) {
+	if nil != this.JobEventReceiver {
+		this.JobEventReceiver.PushEvent(jobEvent)
 	} else {
 		logs.Error("没设置JobEventReceiver对象")
 	}

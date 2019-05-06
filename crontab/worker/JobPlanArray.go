@@ -35,12 +35,14 @@ func (j *JobPlanArray) Remove(key string) error {
 func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) time.Duration {
 	now := time.Now()
 	var nearTime *time.Time
+	//TODO: 计算 一次foreach的计算时间
+	startTime := time.Now()
 	for _, jobPlan := range j.jobPlanTable {
 		//是否过期,小于或都等于当前时间
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
 			if nil != tryStartJob{
 				//尝试执行任务
-				tryStartJob(jobPlan)
+				//tryStartJob(jobPlan)
 				jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
 			}
 
@@ -56,6 +58,8 @@ func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSched
 			nearTime = &jobPlan.NextTime
 		}
 	}
+
+	logs.Debug("JobPlanArray ForEach 遍历耗时: ",time.Since(startTime))
 	//下次调度间隔,(最近要执行的任务调度时间 - 当前时间)
 	return (*nearTime).Sub(now)
 }

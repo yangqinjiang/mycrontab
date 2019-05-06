@@ -43,6 +43,11 @@ func (scheduler *Scheduler) SetJobPlanManager(jobPlanManager JobPlanManager) {
 
 //处理任务事件
 func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
+
+	if nil == scheduler.jobPlanManager{
+		logs.Info("没设置jobPlanManager对象")
+		return
+	}
 	var (
 		jobSchedulePlan *common.JobSchedulePlan
 		err             error
@@ -101,7 +106,7 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) (err er
 func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 
 	//如果任务表为空,随便睡眠多久
-	if 0 == scheduler.jobPlanManager.Size() {
+	if nil == scheduler.jobPlanManager || 0 == scheduler.jobPlanManager.Size() {
 		//fmt.Println("无任务被调度")
 		scheduleAfter = 1 * time.Second
 		return

@@ -33,10 +33,40 @@ func TestScheduler_PushJobEvent(t *testing.T) {
 	}
 	job := &common.Job{Name: "PushJobEvent"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
-	G_scheduler.PushJobEvent(jobEvent)
-	G_scheduler.PushJobEvent(jobEvent)
+	G_scheduler.PushEvent(jobEvent)
+	G_scheduler.PushEvent(jobEvent)
 	if (G_scheduler.JobEventChanLen() != 2){
 		t.Fatal("PushJobEvent 失败,数量==2")
+	}
+	//不设置G_scheduler
+	pusher := &JobEventPusher{JobEventReceiver:nil}
+	b ,err := common.PackJob(job)
+	if err != nil{
+		t.Fatal("序列化job 出错")
+	}
+	pusher.PushSaveEventToScheduler("PushSaveEventToScheduler",b)
+	pusher.PushKillEventToScheduler("PushKillEventToScheduler" )
+	pusher.PushDeleteEventToScheduler("PushDeleteEventToScheduler" )
+	if (G_scheduler.JobEventChanLen() != 2){
+		t.Fatal("这里不设置G_scheduler,不能出错")
+	}
+
+	//设置G_scheduler
+	pusher = &JobEventPusher{JobEventReceiver:G_scheduler}
+	b ,err = common.PackJob(job)
+	if err != nil{
+		t.Fatal("序列化job 出错")
+	}
+	pusher.PushSaveEventToScheduler("PushSaveEventToScheduler",b)
+	pusher.PushKillEventToScheduler("PushKillEventToScheduler" )
+	pusher.PushDeleteEventToScheduler("PushDeleteEventToScheduler" )
+	if (G_scheduler.JobEventChanLen() != 5){
+		t.Fatal("PushJobEvent 失败,数量==5")
+	}
+	b = append(b, 1)
+	pusher.PushSaveEventToScheduler("PushSaveEventToScheduler",b)
+	if (G_scheduler.JobEventChanLen() != 5){
+		t.Fatal("PushJobEvent 失败,数量==5")
 	}
 }
 

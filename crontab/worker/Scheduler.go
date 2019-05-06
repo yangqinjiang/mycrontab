@@ -141,7 +141,7 @@ func (scheduler *Scheduler) scheduleLoop() {
 }
 
 //推送etcd任务变化事件
-func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
+func (scheduler *Scheduler) PushEvent(jobEvent *common.JobEvent) {
 	scheduler.jobEventChan <- jobEvent
 }
 

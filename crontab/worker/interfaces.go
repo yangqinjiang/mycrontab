@@ -28,5 +28,5 @@ type JobPlanManager interface {
 }
 //推送任务事件的管理者
 type JobEventReceiver interface {
-	Push(jobEvent *common.JobEvent)
+	PushEvent(jobEvent *common.JobEvent)
 }

@@ -134,6 +134,15 @@ func UnpackJob(value []byte) (ret *Job, err error) {
 	ret = job
 	return
 }
+//序列化job
+func PackJob(job *Job) (b []byte, err error) {
+
+	b,err = json.Marshal(job)
+	if err != nil {
+		return nil,err
+	}
+	return b,nil
+}
 
 //从etcd的key中提取任务名称
 // /cron/jobs/job10 => job10

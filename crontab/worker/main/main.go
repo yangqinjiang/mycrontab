@@ -49,18 +49,19 @@ func main() {
 	//}
 	//logs.Info("初始化mongodb的实例")
 	testWriter = &worker.ConsoleLog{}
+	logs.Info("初始化ConsoleLog的实例")
 
 	err = worker.InitJobLogMemoryBuffer(testWriter)
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("初始化LogSink的实例")
-	//启动任务执行器
-	err = worker.InitExecutor()
+	logs.Info("初始化JobLogMemoryBuffer的实例")
+	//启动异步任务执行器
+	err = worker.InitGoroutineExecutor()
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("启动任务执行器")
+	logs.Info("启动异步任务执行器")
 	//------------------任务管理器-----------------------------
 	//启动  任务管理器 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
 	err = worker.InitJobMgr()
@@ -74,8 +75,10 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	//设置 推送任务事件的接收者
-	worker.G_jobMgr.SetJobEventPusher(&worker.JobEventPusher{JobEventReceiver:worker.G_scheduler})
+	//设置 推送任务事件 的操作者
+	worker.G_jobMgr.SetJobEventPusher(&worker.CustomJobEventReceiver{JobEventReceiver: worker.G_scheduler})
+	//设置任务执行结果的接收器
+	worker.G_GoroutineExecutor.SetJobResultReceiver(worker.G_scheduler)
 	//----------------------任务调度器--------------------------
 	// 使用 [ 任务管理器推给的任务数据 ],经过 [JobPlanManager调度时间排序] 得到最先应该执行的任务,
 	// 再[同步或JobExecuter异步执行],最后 使用[JobLogger记录任务的执行日志]

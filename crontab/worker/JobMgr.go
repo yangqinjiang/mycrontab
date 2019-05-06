@@ -14,7 +14,7 @@ type JobMgr struct {
 	kv               clientv3.KV
 	lease            clientv3.Lease
 	watcher          clientv3.Watcher
-	jobEventPusher   *JobEventPusher  //推送任务事件的类
+	jobEventPusher   *CustomJobEventReceiver //推送任务事件的类
 }
 
 var (
@@ -23,7 +23,7 @@ var (
 	onceJobMgr sync.Once
 )
 
-func (jobMgr *JobMgr) SetJobEventPusher(jobEventPusher *JobEventPusher) {
+func (jobMgr *JobMgr) SetJobEventPusher(jobEventPusher *CustomJobEventReceiver) {
 	jobMgr.jobEventPusher = jobEventPusher
 }
 

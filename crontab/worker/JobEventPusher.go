@@ -6,12 +6,12 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 )
 
-type JobEventPusher struct {
+type CustomJobEventReceiver struct {
 	JobEventReceiver JobEventReceiver
 }
 
 //推送保存任务的事件到Scheduler
-func (this *JobEventPusher) PushSaveEventToScheduler(jobKey string, value []byte) {
+func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, value []byte) {
 	var job *common.Job
 	var err error
 	if job, err = common.UnpackJob(value); err != nil {
@@ -27,7 +27,7 @@ func (this *JobEventPusher) PushSaveEventToScheduler(jobKey string, value []byte
 }
 
 //推送删除任务的事件到Scheduler
-func (this *JobEventPusher) PushDeleteEventToScheduler(jobKey string) {
+func (this *CustomJobEventReceiver) PushDeleteEventToScheduler(jobKey string) {
 	// Delete /cron/jobs/job10
 	jobName := common.ExtractJobName(jobKey)
 	job := &common.Job{
@@ -41,7 +41,7 @@ func (this *JobEventPusher) PushDeleteEventToScheduler(jobKey string) {
 }
 
 //推送强杀任务的事件到Scheduler
-func (this *JobEventPusher) PushKillEventToScheduler(jobKey string) {
+func (this *CustomJobEventReceiver) PushKillEventToScheduler(jobKey string) {
 	jobName := common.ExtractKillerName(jobKey)
 	fmt.Println("推送强杀任务的事件到Scheduler", jobName)
 	job := &common.Job{Name: jobName}
@@ -50,7 +50,7 @@ func (this *JobEventPusher) PushKillEventToScheduler(jobKey string) {
 	this.PushToScheduler(jobEvent)
 }
 //推送给scheduler
-func (this *JobEventPusher) PushToScheduler(jobEvent *common.JobEvent) {
+func (this *CustomJobEventReceiver) PushToScheduler(jobEvent *common.JobEvent) {
 	if nil != this.JobEventReceiver {
 		this.JobEventReceiver.PushEvent(jobEvent)
 	} else {

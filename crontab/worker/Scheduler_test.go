@@ -39,7 +39,7 @@ func TestScheduler_PushJobEvent(t *testing.T) {
 		t.Fatal("PushJobEvent 失败,数量==2")
 	}
 	//不设置G_scheduler
-	pusher := &JobEventPusher{JobEventReceiver:nil}
+	pusher := &CustomJobEventReceiver{JobEventReceiver: nil}
 	b ,err := common.PackJob(job)
 	if err != nil{
 		t.Fatal("序列化job 出错")
@@ -52,7 +52,7 @@ func TestScheduler_PushJobEvent(t *testing.T) {
 	}
 
 	//设置G_scheduler
-	pusher = &JobEventPusher{JobEventReceiver:G_scheduler}
+	pusher = &CustomJobEventReceiver{JobEventReceiver: G_scheduler}
 	b ,err = common.PackJob(job)
 	if err != nil{
 		t.Fatal("序列化job 出错")
@@ -82,9 +82,9 @@ func TestScheduler_PushJobResult(t *testing.T) {
 		Output:      make([]byte, 0),
 		StartTime:   time.Now(),
 	}
-	G_scheduler.PushJobResult(result)
-	G_scheduler.PushJobResult(result)
-	G_scheduler.PushJobResult(result)
+	G_scheduler.PushResult(result)
+	G_scheduler.PushResult(result)
+	G_scheduler.PushResult(result)
 	if (G_scheduler.JobResultChanLen() != 3){
 		t.Fatal("PushJobResult 失败,数量== 3")
 	}

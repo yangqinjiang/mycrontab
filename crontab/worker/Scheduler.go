@@ -13,6 +13,7 @@ import (
 */
 type Scheduler struct {
 	JobEventReceiver                                    //推送任务事件的接口
+	JobResultReceiver									//推送任务执行结果 	的接口
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
@@ -145,14 +146,14 @@ func (scheduler *Scheduler) PushEvent(jobEvent *common.JobEvent) {
 	scheduler.jobEventChan <- jobEvent
 }
 
+//回传任务执行结果
+func (scheduler *Scheduler) PushResult(jobResult *common.JobExecuteResult) {
+	scheduler.jobResultChan <- jobResult
+}
+
 //JobEventChan etcd任务事件队列的数量
 func (scheduler *Scheduler) JobEventChanLen() int {
 	return len(scheduler.jobEventChan)
-}
-
-//回传任务执行结果
-func (scheduler *Scheduler) PushJobResult(jobResult *common.JobExecuteResult) {
-	scheduler.jobResultChan <- jobResult
 }
 
 //回传任务执行结果 队列的数量

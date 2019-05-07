@@ -23,6 +23,7 @@ func (j *JobPlanMinHeap)PrintList()  {
 	for i:=1;i<=j.Size() ; i++ {
 		logs.Debug(j.data[i].Job,j.data[i].NextTime,j.data[i].Job.CronExpr)
 	}
+
 }
 func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
 
@@ -40,24 +41,26 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	endTime := time.Since(now)
 	//这里执行任务
 	if isExpire && nil != tryStartJob {
-		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name," 已过期")
-		mini_plan_exprie := j.ExtractMin()      //从最小堆中取出堆顶元素
-		logs.Debug("取出最小堆顶元素 item=", mini_plan_exprie.Job.Name," 准备执行任务...")
-		if mini_plan.Job.Name != mini_plan_exprie.Job.Name{
-			logs.Error("mini_plan_exprie != mini_plan")
-		}
+		logs.Debug("最小堆顶元素 item 0=", mini_plan.Job.Name," 已过期")
+		mini_plan_extract := j.ExtractMin()      //从最小堆中取出堆顶元素
+		logs.Debug("取出最小堆顶元素 item 1=", mini_plan_extract.Job.Name," 准备执行任务...")
+		//if mini_plan.Job.Name != mini_plan.Job.Name{
+		//	logs.Error("mini_plan_exprie != mini_plan")
+		//}
 		endTime = time.Since(now) //更新遍历时间
 		//尝试执行任务
-		tryStartJob(mini_plan_exprie)
-		mini_plan_exprie.NextTime = mini_plan_exprie.Expr.Next(now) //执行后,更新下次执行时间的值
+		tryStartJob(mini_plan_extract)
+		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now) //执行后,更新下次执行时间的值
 
-		if err := j.Insert(mini_plan_exprie); err != nil {
+		if err := j.Insert(mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err
 		}
+
 	}else{
 		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name," 未过期")
 	}
+
 
 
 	after_len := j.count
@@ -107,6 +110,7 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 	logs.Info("插入新的值item.Job.Name=",item.Job.Name)
+	mh.PrintList()
 	//边界
 	myIndex := mh.count + 1
 	Assert(myIndex <= mh.capacity)

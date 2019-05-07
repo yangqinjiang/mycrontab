@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"bytes"
 	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"strconv"
@@ -50,7 +49,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 	// 1w, 耗时 1 ms~2 ms.
 	// 10w, 耗时 10 ms~20 ms.
 	// 100w, 耗时 100 ms以上.
-	SIZE := 10
+	SIZE := 2
 	j  := NewJobPlanMinHeap(SIZE)
 	for i:=1; i<=SIZE;i++  {
 		istr := strconv.Itoa(i)
@@ -78,32 +77,27 @@ func TestExtractEarliestHeap(t *testing.T) {
 	if SIZE != j.Size(){
 		t.Fatal("Insert 失败,数量 != ",SIZE)
 	}
+	j.PrintList()
+
+	//ending := make(chan int)
 	go func() {
+		//defer func(){ // 必须要先声明defer，否则不能捕获到panic异常
+		//	if err:=recover();err!=nil{
+		//		logs.Error(err) // 这里的err其实就是panic传入的内容，55
+		//		//ending <- 1
+		//	}
+		//}()
 		for  {
-			j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				//t.Log("执行任务",jobPlan.Job.Name," ,cronExpr=",jobPlan.Job.CronExpr,"下次执行时间=",jobPlan.NextTime)
-				//不存在,则构建一个
-				jobExecuteInfo := common.BuildJobExecuteInfo(jobPlan)
-				//任务执行的结果
-				result := &common.JobExecuteResult{
-					ExecuteInfo: jobExecuteInfo,
-					Output:      make([]byte, 0),
-					StartTime:   time.Now(),
-				}
-
-				result.StartTime = time.Now()
-				// 模拟执行....
-
-				time.Sleep(100*time.Millisecond)
-				//记录结束时间
-				result.EndTime = time.Now()
-				result.Output = bytes.NewBufferString("test output").Bytes()
-				result.Err = err
-				logs.Debug("模拟执行: ",jobExecuteInfo.Job.Name," 开始时间:",result.StartTime ," 结束时间:",result.EndTime , " 耗时:",result.EndTime.Sub(result.StartTime))
-				return
+			logs.Info("for...")
+			miniTime,err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
+				logs.Info("这里执行任务",jobPlan.Job.Name,jobPlan.NextTime)
+				return nil
 			});
+			if err1 != nil{
+				t.Error("ExtractEarliest err=",err1)
+			}
 
-			//logs.Debug("sleep...",t.Seconds())
+			logs.Debug("sleep...",miniTime.Seconds())
 			time.Sleep(10*time.Millisecond)
 
 		}
@@ -111,6 +105,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 
 
 	time.Sleep(6000*time.Second)
+	//<- ending
 	t.Log("run over...")
 
 }

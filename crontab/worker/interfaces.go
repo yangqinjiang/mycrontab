@@ -24,7 +24,7 @@ type JobPlanManager interface {
 	// 使用key 删除一个任务
 	Remove(key string)(error)
 	//找出最早
-	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration)
+	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration,error)
 }
 //推送任务事件的管理者
 type JobEventReceiver interface {

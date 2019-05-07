@@ -113,7 +113,7 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	}
 
 	//查找最早的任务,并传入  scheduler.TryStartJob 执行
-	scheduleAfter = scheduler.jobPlanManager.ExtractEarliest(scheduler.TryStartJob);
+	scheduleAfter ,_= scheduler.jobPlanManager.ExtractEarliest(scheduler.TryStartJob);
 	return
 
 }

@@ -32,7 +32,7 @@ func (j *JobPlanArray) Remove(key string) error {
 }
 
 //找出最早的
-func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) time.Duration {
+func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error))( time.Duration ,error) {
 	now := time.Now()
 	var nearTime *time.Time
 	//计算 一次foreach的计算时间
@@ -61,7 +61,7 @@ func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSched
 
 	logs.Debug("JobPlanArray ForEach 遍历耗时: ",time.Since(startTime))
 	//下次调度间隔,(最近要执行的任务调度时间 - 当前时间)
-	return (*nearTime).Sub(now)
+	return (*nearTime).Sub(now),nil
 }
 func NewJobPlanArray() *JobPlanArray {
 	logs.Debug("NewJobPlanArray");

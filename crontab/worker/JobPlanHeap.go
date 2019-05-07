@@ -14,18 +14,12 @@ import (
 type JobPlanMinHeap struct {
 	JobPlanManager //任务计划管理
 	data           []*common.JobSchedulePlan
-	keyIndex   map[string]int
+	keyIndex       map[string]int
 	count          int
 	capacity       int
 }
 
-func (j *JobPlanMinHeap)PrintList()  {
-	for i:=1;i<=j.count ; i++ {
-		item := j.data[i]
-		logs.Debug("item=",item.Job.Name," NextTime=",item.NextTime)
-	}
-}
-func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration,err error) {
+func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
 
 	//计算时间
 	startTime := time.Now()
@@ -33,24 +27,29 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 
 	//获取堆顶元素
 	mini_plan := j.GetMin()
+	if nil == mini_plan {
+		return 0, nil
+	}
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(startTime) || mini_plan.NextTime.Equal(startTime)
-
+	endTime := time.Since(startTime)
 	//这里执行任务
-	if isExpire && nil != tryStartJob{
-		mini_plan = j.ExtractMin() //从最小堆中取出堆顶元素
+	if isExpire && nil != tryStartJob {
+		mini_plan = j.ExtractMin()      //从最小堆中取出堆顶元素
+		endTime = time.Since(startTime) //更新遍历时间
+
 		//尝试执行任务
 		tryStartJob(mini_plan)
 		mini_plan.NextTime = mini_plan.Expr.Next(startTime) //执行后,更新下次执行时间的值
-		//再次插入mini_plan的值
-		if err := j.Insert(mini_plan);err != nil{
-			return 0,err
+
+		if err := j.Insert(mini_plan); err != nil {
+			return 0, err
 		}
 	}
 
 	after_len := j.count
-	logs.Debug("JobPlanHeap ExtractEarliest 遍历耗时: ",time.Since(startTime),"(before=",before_len ,"/after=",after_len,") ,最小堆元素item=",mini_plan.Job.Name," ,NextTime=",mini_plan.NextTime)
-	return mini_plan.NextTime.Sub(time.Now()),nil //返回最小的时间,用于睡眠或定时
+	logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", endTime, " 元素个数:(before=", before_len, "/after=", after_len, ")")
+	return mini_plan.NextTime.Sub(time.Now()), nil //返回最小的时间,用于睡眠或定时
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
 	for k > 1 && mh.data[k/2].NextTime.Unix() > mh.data[k].NextTime.Unix() {
@@ -95,27 +94,31 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 	//边界
-	myIndex := mh.count+1
+	myIndex := mh.count + 1
 	Assert(myIndex <= mh.capacity)
 	//如果已存在这个元素,则跳过
-	if _,exist := mh.keyIndex[item.Job.Name];exist{
+	if _, exist := mh.keyIndex[item.Job.Name]; exist {
+		logs.Error("再次插入mini_plan 失败")
 		return errors.New("如果已存在这个数据")
 	}
+
 	mh.data[myIndex] = item
 	mh.keyIndex[item.Job.Name] = myIndex
 	mh.shiftUp(mh.count)
 	mh.count++
+	//logs.Info("再次插入mini_plan的值,mh.count=",mh.count)
 	return nil
 }
+
 // 使用key 删除一个任务
 func (mh *JobPlanMinHeap) Remove(key string) error {
 	//存在,则删除 索引为myIndex的数据
-	if myIndex,exist := mh.keyIndex[key];exist{
+	if myIndex, exist := mh.keyIndex[key]; exist {
 		//操作切片
 		mh.data = append(mh.data[:myIndex], mh.data[myIndex+1:]...)
 		//删除keyIndex中的数据
-		delete(mh.keyIndex,key)
-		mh.count --
+		delete(mh.keyIndex, key)
+		mh.count--
 		//交换最后和第一个元素,使它不是最小堆
 		mh.swap(mh.data[1], mh.data[mh.count])
 		//进行 shiftDown
@@ -123,9 +126,10 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 		return nil
 	}
 
-	return errors.New("不存在这个数据key= "+key)
+	return errors.New("不存在这个数据key= " + key)
 
 }
+
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
@@ -136,23 +140,27 @@ func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	e.count--
 	//进行 shiftDown
 	e.shiftDown(1)
-
+	delete(e.keyIndex, ret.Job.Name) //删除key_value
 	//返回第一个
 	return ret
 
 }
+
 // 将最小堆中索引为i的元素修改为newItem
-func (e *JobPlanMinHeap)change(key string,newItem *common.JobSchedulePlan)  {
+func (e *JobPlanMinHeap) change(key string, newItem *common.JobSchedulePlan) {
 	//存在,则修改
-	if myIndex,exist := e.keyIndex[key];exist {
+	if myIndex, exist := e.keyIndex[key]; exist {
 		i := myIndex + 1
 		e.data[i] = newItem
 		e.shiftDown(i)
 	}
 }
+
 // 获取最小堆中的堆顶元素
 func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
-	Assert(e.count > 0)
+	if e.count <= 0 {
+		return nil
+	}
 	return e.data[1]
 }
 
@@ -160,7 +168,7 @@ func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
 func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 	logs.Debug("NewJobPlanMinHeap")
 	return &JobPlanMinHeap{data: make([]*common.JobSchedulePlan, capacity+1, capacity+1),
-		keyIndex: make(map[string]int,capacity+1),
+		keyIndex: make(map[string]int, capacity+1),
 		count:    0,
 		capacity: capacity}
 }

@@ -62,7 +62,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			i_60 = 1
 		}
 
-		i_60_str := strconv.Itoa(i_60)
+		i_60_str := strconv.Itoa(i_60+1)
 		one_job := &common.Job{Name: "job_" + istr, CronExpr: "*/" + i_60_str + " * * * * * *"}
 		jj, err := common.BuildJobSchedulePlan(one_job)
 		if err == nil {
@@ -78,7 +78,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 	if SIZE != j.Size() {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
 	}
-
+	//j.PrintList()
 	//ending := make(chan int)
 	go func() {
 		//defer func(){ // 必须要先声明defer，否则不能捕获到panic异常
@@ -91,7 +91,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			logs.Info("")
 			logs.Info("for...")
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Info("这里执行任务", jobPlan.Job.Name, jobPlan.NextTime)
+				logs.Info("执行任务", jobPlan.Job.Name, jobPlan.NextTime)
 				return nil
 			})
 			if err1 != nil {
@@ -99,8 +99,8 @@ func TestExtractEarliestHeap(t *testing.T) {
 			}
 
 
-			logs.Info("sleep ", miniTime.Seconds(), " s","...end")
-			logs.Info("")
+			logs.Info("sleep ", miniTime.Seconds(), "s","...end")
+
 			time.Sleep(miniTime)
 
 

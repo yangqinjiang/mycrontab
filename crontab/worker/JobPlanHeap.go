@@ -154,8 +154,8 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
-	var ret *common.JobSchedulePlan;
-	ret = e.data[1] //读取第一个,是最小值
+	
+	ret := &*e.data[1] //读取第一个,是最小值
 
 	logs.Info("ExtractMin:",ret.Job.Name," Size=",e.Size())
 

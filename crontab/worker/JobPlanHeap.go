@@ -26,27 +26,29 @@ func (j *JobPlanMinHeap)PrintList()  {
 
 }
 func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
-
+	var(
+		mini_plan *common.JobSchedulePlan
+		mini_plan_extract *common.JobSchedulePlan
+	)
 	//计算时间
 	now := time.Now()
 	before_len := j.count
 
 	//获取堆顶元素
-	mini_plan := j.GetMin()
+	mini_plan = j.GetMin()
 	if nil == mini_plan {
 		return 0, nil
 	}
+	logs.Debug("GetMin item=", mini_plan.Job.Name)
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(now) || mini_plan.NextTime.Equal(now)
 	endTime := time.Since(now)
 	//这里执行任务
 	if isExpire && nil != tryStartJob {
-		logs.Debug("最小堆顶元素 item 0=", mini_plan.Job.Name," 已过期")
-		mini_plan_extract := j.ExtractMin()      //从最小堆中取出堆顶元素
-		logs.Debug("取出最小堆顶元素 item 1=", mini_plan_extract.Job.Name," 准备执行任务...")
-		//if mini_plan.Job.Name != mini_plan.Job.Name{
-		//	logs.Error("mini_plan_exprie != mini_plan")
-		//}
+		logs.Debug("最小堆顶元素 item_0=", mini_plan.Job.Name," 已过期")
+		mini_plan_extract = j.ExtractMin()      //从最小堆中取出堆顶元素
+		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name," 准备执行任务...")
+
 		endTime = time.Since(now) //更新遍历时间
 		//尝试执行任务
 		tryStartJob(mini_plan_extract)
@@ -152,7 +154,10 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
-	ret := e.data[1] //读取第一个,是最小值
+	var ret *common.JobSchedulePlan;
+	ret = e.data[1] //读取第一个,是最小值
+
+	logs.Info("ExtractMin:",ret.Job.Name," Size=",e.Size())
 
 	//交换最后和第一个元素,使它不是最小堆
 	e.swap(e.data[1], e.data[e.count])

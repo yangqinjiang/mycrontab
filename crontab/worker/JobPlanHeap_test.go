@@ -3,6 +3,7 @@ package worker
 import (
 	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -78,20 +79,15 @@ func TestExtractEarliestHeap(t *testing.T) {
 	if SIZE != j.Size() {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
 	}
-	//j.PrintList()
-	//ending := make(chan int)
+
 	go func() {
-		//defer func(){ // 必须要先声明defer，否则不能捕获到panic异常
-		//	if err:=recover();err!=nil{
-		//		logs.Error(err) // 这里的err其实就是panic传入的内容，55
-		//		//ending <- 1
-		//	}
-		//}()
+
+
 		for {
 			logs.Info("")
-			logs.Info("for...")
+			logs.Info("for...",os.Getpid())
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Info("执行任务", jobPlan.Job.Name, jobPlan.NextTime)
+				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
 				return nil
 			})
 			if err1 != nil {
@@ -107,7 +103,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(6000 * time.Second)
+	time.Sleep(10 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

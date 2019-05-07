@@ -35,7 +35,7 @@ func (j *JobPlanArray) Remove(key string) error {
 func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) time.Duration {
 	now := time.Now()
 	var nearTime *time.Time
-	//TODO: 计算 一次foreach的计算时间
+	//计算 一次foreach的计算时间
 	startTime := time.Now()
 	for _, jobPlan := range j.jobPlanTable {
 		//是否过期,小于或都等于当前时间

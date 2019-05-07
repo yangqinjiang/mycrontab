@@ -2,6 +2,7 @@ package worker
 
 import (
 	"github.com/astaxie/beego/logs"
+	"github.com/pkg/errors"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"time"
 )
@@ -13,12 +14,20 @@ import (
 type JobPlanMinHeap struct {
 	JobPlanManager //任务计划管理
 	data           []*common.JobSchedulePlan
+	keyIndex   map[string]int
 	count          int
 	capacity       int
 }
 
 func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) time.Duration {
-	return 0
+	//计算时间
+	startTime := time.Now()
+	len0 := j.count
+
+	mini_plan := j.ExtractMin() //从最小堆中取出堆顶元素
+	len1 := j.count
+	logs.Debug("JobPlanHeap ExtractEarliest 遍历耗时: ",time.Since(startTime),"len0=",len0 ,"len1=",len1)
+	return mini_plan.NextTime.Sub(time.Now()) //返回最小的时间,用于睡眠或定时
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
 	for k > 1 && mh.data[k/2].NextTime.Unix() > mh.data[k].NextTime.Unix() {
@@ -63,19 +72,43 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 	//边界
-	Assert(mh.count+1 <= mh.capacity)
-	mh.data[mh.count+1] = item
+	myIndex := mh.count+1
+	Assert(myIndex <= mh.capacity)
+	//如果已存在这个元素,则跳过
+	if _,exist := mh.keyIndex[item.Job.Name];exist{
+		return errors.New("如果已存在这个数据")
+	}
+	mh.data[myIndex] = item
+	mh.keyIndex[item.Job.Name] = myIndex
 	mh.shiftUp(mh.count)
 	mh.count++
 	return nil
 }
+// 使用key 删除一个任务
+func (mh *JobPlanMinHeap) Remove(key string) error {
+	//存在,则删除 索引为myIndex的数据
+	if myIndex,exist := mh.keyIndex[key];exist{
+		//操作切片
+		mh.data = append(mh.data[:myIndex], mh.data[myIndex+1:]...)
+		//删除keyIndex中的数据
+		delete(mh.keyIndex,key)
+		mh.count --
+		//交换最后和第一个元素,使它不是最小堆
+		mh.swap(mh.data[1], mh.data[mh.count])
+		//进行 shiftDown
+		mh.shiftDown(1)
+		return nil
+	}
 
+	return errors.New("不存在这个数据key= "+key)
+
+}
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
-	ret := e.data[1] //读取第一个,是最大值
+	ret := e.data[1] //读取第一个,是最小值
 
-	//交换最后和第一个元素,使得不是最大堆
+	//交换最后和第一个元素,使它不是最小堆
 	e.swap(e.data[1], e.data[e.count])
 	e.count--
 	//进行 shiftDown
@@ -96,6 +129,7 @@ func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
 func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 	logs.Debug("NewJobPlanMinHeap")
 	return &JobPlanMinHeap{data: make([]*common.JobSchedulePlan, capacity+1, capacity+1),
+		keyIndex: make(map[string]int,capacity+1),
 		count:    0,
 		capacity: capacity}
 }

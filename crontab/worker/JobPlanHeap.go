@@ -13,7 +13,7 @@ import (
 //任务计划表 ,使用最小堆实现
 type JobPlanMinHeap struct {
 	JobPlanManager //任务计划管理
-	data           []*common.JobSchedulePlan
+	data           []common.JobSchedulePlan
 	keyIndex       map[string]int
 	count          int
 	capacity       int
@@ -71,7 +71,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
 	for k > 1 && mh.data[k/2].NextTime.Unix() > mh.data[k].NextTime.Unix() {
-		mh.swap(mh.data[k/2], mh.data[k])
+		mh.swap(&mh.data[k/2], &mh.data[k])
 		k /= 2
 	}
 }
@@ -87,7 +87,7 @@ func (mh *JobPlanMinHeap) shiftDown(k int) {
 			break
 		}
 
-		mh.swap(mh.data[k], mh.data[j])
+		mh.swap(&mh.data[k], &mh.data[j])
 		k = j
 	}
 }
@@ -111,7 +111,7 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
-	logs.Info("插入新的值item.Job.Name=",item.Job.Name)
+	logs.Debug("插入新的值item.Job.Name=",item.Job.Name)
 	mh.PrintList()
 	//边界
 	myIndex := mh.count + 1
@@ -122,11 +122,11 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 		return errors.New("如果已存在这个数据")
 	}
 
-	mh.data[myIndex] = item
+	mh.data[myIndex] = *item
 	mh.keyIndex[item.Job.Name] = myIndex
 	mh.shiftUp(mh.count)
 	mh.count++
-	logs.Info("再次插入mini_plan的值item.Job.Name=",item.Job.Name,",mh.count=",mh.count)
+	logs.Debug("再次插入mini_plan的值item.Job.Name=",item.Job.Name,",mh.count=",mh.count)
 	mh.PrintList()
 	return nil
 }
@@ -141,7 +141,7 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 		delete(mh.keyIndex, key)
 		mh.count--
 		//交换最后和第一个元素,使它不是最小堆
-		mh.swap(mh.data[1], mh.data[mh.count])
+		mh.swap(&mh.data[1], &mh.data[mh.count])
 		//进行 shiftDown
 		mh.shiftDown(1)
 		return nil
@@ -155,23 +155,24 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
 	
-	ret := &*e.data[1] //读取第一个,是最小值
+	ret := e.data[1] //读取第一个,是最小值
 
-	logs.Info("ExtractMin:",ret.Job.Name," Size=",e.Size())
+	logs.Debug("ExtractMin: Before Swap ,Job.Name= ",ret.Job.Name," Size=",e.Size()," Count=",e.count)
 
 	//交换最后和第一个元素,使它不是最小堆
-	e.swap(e.data[1], e.data[e.count])
+	e.swap(&e.data[1], &e.data[e.count])
 	e.count--
 	//进行 shiftDown
 	e.shiftDown(1)
 	delete(e.keyIndex, ret.Job.Name) //删除key_value
 	//返回第一个
-	return ret
+	logs.Debug("ExtractMin: After Swap ,Job.Name=",ret.Job.Name," Size=",e.Size()," Count=",e.count)
+	return &ret
 
 }
 
 // 将最小堆中索引为i的元素修改为newItem
-func (e *JobPlanMinHeap) change(key string, newItem *common.JobSchedulePlan) {
+func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
 	//存在,则修改
 	if myIndex, exist := e.keyIndex[key]; exist {
 		i := myIndex + 1
@@ -185,13 +186,28 @@ func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
 	if e.count <= 0 {
 		return nil
 	}
-	return e.data[1]
+	return &e.data[1]
 }
+// 判断arr数组是否有序
+func (e *JobPlanMinHeap) IsSorted() bool {
 
+	data := make([]*common.JobSchedulePlan,e.Size()+1)
+	//从堆中依次取出元素
+	for i:=e.Size()-1;i>=0;i--{
+		data[i] = e.ExtractMin()
+	}
+	for i := 0; i < e.Size()-1; i++ {
+		if data[i].NextTime.Unix() > data[i+1].NextTime.Unix() {
+
+			return false
+		}
+	}
+	return true
+}
 // 构造函数, 构造一个空堆, 可容纳capacity个元素
 func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 	logs.Debug("NewJobPlanMinHeap")
-	return &JobPlanMinHeap{data: make([]*common.JobSchedulePlan, capacity+1, capacity+1),
+	return &JobPlanMinHeap{data: make([]common.JobSchedulePlan, capacity+1, capacity+1),
 		keyIndex: make(map[string]int, capacity+1),
 		count:    0,
 		capacity: capacity}
@@ -200,10 +216,10 @@ func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 //Heapify
 // 构造函数, 通过一个给定数组创建一个最小堆
 // 该构造堆的过程, 时间复杂度为O(n)
-func NewJobPlanMinHeapByArray(arr []*common.JobSchedulePlan, n int) *JobPlanMinHeap {
+func NewJobPlanMinHeapByArray(arr []common.JobSchedulePlan, n int) *JobPlanMinHeap {
 
 	// 索引从1开始
-	o := &JobPlanMinHeap{data: make([]*common.JobSchedulePlan, n+1, n+1),
+	o := &JobPlanMinHeap{data: make([]common.JobSchedulePlan, n+1, n+1),
 		count:    0,
 		capacity: n}
 

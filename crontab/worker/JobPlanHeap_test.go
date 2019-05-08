@@ -1,9 +1,9 @@
 package worker
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -46,12 +46,12 @@ func TestJobPlanHeap(t *testing.T) {
 
 //找出最早的
 func TestExtractEarliestHeap(t *testing.T) {
-
+	logs.SetLevel(logs.LevelInfo)
 	// 简单的性能测试,如下:
 	// 1w, 耗时 1 ms~2 ms.
 	// 10w, 耗时 10 ms~20 ms.
 	// 100w, 耗时 100 ms以上.
-	SIZE := 2
+	SIZE := 10000
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -63,11 +63,14 @@ func TestExtractEarliestHeap(t *testing.T) {
 			i_60 = 1
 		}
 
-		i_60_str := strconv.Itoa(i_60+1)
+		i_60_str := strconv.Itoa(i_60)
 		one_job := &common.Job{Name: "job_" + istr, CronExpr: "*/" + i_60_str + " * * * * * *"}
 		jj, err := common.BuildJobSchedulePlan(one_job)
 		if err == nil {
+			startTime := time.Now()
 			err = j.Insert(jj)
+			elapsed := time.Since(startTime)
+			logs.Info("插入一条数据:",one_job.Name," took :",  elapsed)
 			if err != nil {
 				t.Error(err.Error())
 			}
@@ -80,31 +83,42 @@ func TestExtractEarliestHeap(t *testing.T) {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
 	}
 
-	go func() {
+	logs.Info("排序...")
+	startTime := time.Now()
+	//检查是否排序
+	if j.IsSorted(){
+		t.Log("排序正常")
+	}else{
+		t.Fatal("排序不对")
+	}
+	elapsed1 := time.Since(startTime)
+	fmt.Printf(" Sort Test ,took %s%s",  elapsed1, "  \n")
+	logs.Info("排序 over")
 
-
-		for {
-			logs.Info("")
-			logs.Info("for...",os.Getpid())
-			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
-				return nil
-			})
-			if err1 != nil {
-				t.Error("ExtractEarliest err=", err1)
-			}
-
-
-			logs.Info("sleep ", miniTime.Seconds(), "s","...end")
-
-			time.Sleep(miniTime)
-
-
-		}
-	}()
+	//go func() {
+	//	for {
+	//		logs.Info("")
+	//		logs.Info("for...",os.Getpid())
+	//		miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
+	//			logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
+	//			return nil
+	//		})
+	//		if err1 != nil {
+	//			t.Error("ExtractEarliest err=", err1)
+	//		}
+	//
+	//
+	//		logs.Info("sleep ", miniTime.Seconds(), "s","...end")
+	//
+	//		time.Sleep(miniTime)
+	//
+	//
+	//	}
+	//}()
 
 	time.Sleep(10 * time.Second)
 	//<- ending
 	t.Log("run over...")
 
 }
+

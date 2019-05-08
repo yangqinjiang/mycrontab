@@ -108,15 +108,18 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
-	logs.Debug("插入新的值item.Job.Name=", item.Job.Name)
+	logs.Debug("插入新的JobPlan值 Job.Name=", item.Job.Name)
 	//mh.PrintList()
 	//边界
 	myIndex := mh.count + 1
-	Assert(myIndex <= mh.capacity)
+
+	if myIndex > mh.capacity{
+		return errors.New("任务已超出额定数量")
+	}
 	//如果已存在这个元素,则跳过
 	if _, exist := mh.keyIndex[item.Job.Name]; exist {
-		logs.Error("再次插入mini_plan 失败")
-		return errors.New("如果已存在这个数据")
+		logs.Error("再次插入JobPlan 失败")
+		return errors.New("已存在这个数据")
 	}
 
 	mh.data[myIndex] = *item
@@ -132,8 +135,16 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 func (mh *JobPlanMinHeap) Remove(key string) error {
 	//存在,则删除 索引为myIndex的数据
 	if myIndex, exist := mh.keyIndex[key]; exist {
+
+
+		logs.Info("exist ,remove",key,"-",myIndex,"-data.Size:", len(mh.data))
 		//操作切片
-		mh.data = append(mh.data[:myIndex], mh.data[myIndex+1:]...)
+		if myIndex >= len(mh.data){
+			mh.data = mh.data[:myIndex]
+		}else{ // myIndex < len(mh.data)
+			mh.data = append(mh.data[:myIndex], mh.data[myIndex+1:]...)
+		}
+
 		//删除keyIndex中的数据
 		delete(mh.keyIndex, key)
 		mh.count--
@@ -189,12 +200,17 @@ func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
 // 判断arr数组是否有序
 func (e *JobPlanMinHeap) IsSorted() bool {
 
-	data := make([]*common.JobSchedulePlan, e.Size()+1)
+	data_size := e.Size() ;
+	logs.Info("Before ExtractMin,data_size=",data_size)
+	data := make([]*common.JobSchedulePlan,data_size)
 	//从堆中依次取出元素
-	for i := e.Size() - 1; i >= 0; i-- {
+	for i := 0; i < data_size; i++ {
+		logs.Info("Before ExtractMin,Size=",i," ,Size=",e.Size())
 		data[i] = e.ExtractMin()
 	}
-	for i := 0; i < e.Size()-1; i++ {
+	logs.Info("After ExtractMin,Size=",e.Size(),data)
+	for i := 0; i <  data_size - 1; i++ {
+		logs.Info(data[i].Job.Name,data[i].NextTime.Unix())
 		if data[i].NextTime.Unix() > data[i+1].NextTime.Unix() {
 
 			return false
@@ -212,30 +228,6 @@ func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 		capacity: capacity}
 }
 
-//Heapify
-// 构造函数, 通过一个给定数组创建一个最小堆
-// 该构造堆的过程, 时间复杂度为O(n)
-func NewJobPlanMinHeapByArray(arr []common.JobSchedulePlan, n int) *JobPlanMinHeap {
-
-	// 索引从1开始
-	o := &JobPlanMinHeap{data: make([]common.JobSchedulePlan, n+1, n+1),
-		count:    0,
-		capacity: n}
-
-	//更新堆元素
-	for i := 0; i < n; i++ {
-		o.data[i+1] = arr[i]
-	}
-	//更新计数器
-	o.count = n
-
-	//从不是子节点开始,进行shiftDown
-	for i := o.count / 2; i >= 1; i-- {
-		o.shiftDown(i)
-	}
-
-	return o
-}
 func Assert(b bool) {
 	if !b {
 		panic("出错了")

@@ -61,7 +61,9 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 			return
 		}
 		logs.Info("保存任务:", jobEvent.Job.Name)
-		scheduler.jobPlanManager.Insert(jobSchedulePlan)
+		if err := scheduler.jobPlanManager.Insert(jobSchedulePlan);err !=nil{
+			logs.Error("保存任务出错:", err.Error())
+		}
 	case common.JOB_EVENT_DELETE: //删除任务事件
 		logs.Info("删除任务:", jobEvent.Job.Name)
 		scheduler.jobPlanManager.Remove(jobEvent.Job.Name)

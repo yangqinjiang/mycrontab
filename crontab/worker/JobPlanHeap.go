@@ -45,7 +45,8 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	elapsed := time.Since(now)
 	//这里执行任务
 	if isExpire && nil != tryStartJob {
-		mini_plan_extract = j.ExtractMin() //从最小堆中取出堆顶元素
+		 //从最小堆中取出堆顶元素
+		mini_plan_extract = j.ExtractMin()
 		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, "已过期, 准备执行任务...")
 
 		elapsed = time.Since(now) //更新遍历时间
@@ -137,7 +138,7 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 	if myIndex, exist := mh.keyIndex[key]; exist {
 
 
-		logs.Info("exist ,remove",key,"-",myIndex,"-data.Size:", len(mh.data))
+		logs.Info("exist ,remove",key," myIndex=",myIndex," data.Size:", len(mh.data))
 		//操作切片
 		if myIndex >= len(mh.data){
 			mh.data = mh.data[:myIndex]
@@ -155,7 +156,7 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 		return nil
 	}
 
-	return errors.New("不存在这个数据key= " + key)
+	return errors.New("删除失败,不存在这个数据key= " + key)
 
 }
 

@@ -143,10 +143,10 @@ func TestExtractEarliestHeap(t *testing.T) {
 			logs.Info("")
 			logs.Info("for...",os.Getpid())
 			//随机删除一些数据
-			remove_err := j.Remove("job_"+strconv.Itoa(randInt(1,j.Size())))
-			if remove_err != nil{
-				logs.Error(remove_err)
-			}
+			//remove_err := j.Remove("job_"+strconv.Itoa(randInt(1,j.Size())))
+			//if remove_err != nil{
+			//	logs.Error(remove_err)
+			//}
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
 				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
 				return nil
@@ -164,7 +164,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(10 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

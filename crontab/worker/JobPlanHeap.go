@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//TODO: 使用最小堆， 动态排序任务
+//使用最小堆， 动态排序任务
 //  参考资料
 //  https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/04-Heap/Course%20Code%20(C%2B%2B)/Optional-2-Min-Heap/MinHeap.h
 //任务计划表 ,使用最小堆实现
@@ -19,15 +19,15 @@ type JobPlanMinHeap struct {
 	capacity       int
 }
 
-func (j *JobPlanMinHeap)PrintList()  {
-	for i:=1;i<=j.Size() ; i++ {
-		logs.Debug(j.data[i].Job,j.data[i].NextTime,j.data[i].Job.CronExpr)
+func (j *JobPlanMinHeap) PrintList() {
+	for i := 1; i <= j.Size(); i++ {
+		logs.Debug(j.data[i].Job, j.data[i].NextTime, j.data[i].Job.CronExpr)
 	}
 
 }
 func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
-	var(
-		mini_plan *common.JobSchedulePlan
+	var (
+		mini_plan         *common.JobSchedulePlan
 		mini_plan_extract *common.JobSchedulePlan
 	)
 	//计算时间
@@ -42,14 +42,13 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	logs.Debug("GetMin item=", mini_plan.Job.Name)
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(now) || mini_plan.NextTime.Equal(now)
-	endTime := time.Since(now)
+	elapsed := time.Since(now)
 	//这里执行任务
 	if isExpire && nil != tryStartJob {
-		logs.Debug("最小堆顶元素 item_0=", mini_plan.Job.Name," 已过期")
-		mini_plan_extract = j.ExtractMin()      //从最小堆中取出堆顶元素
-		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name," 准备执行任务...")
+		mini_plan_extract = j.ExtractMin() //从最小堆中取出堆顶元素
+		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, "已过期, 准备执行任务...")
 
-		endTime = time.Since(now) //更新遍历时间
+		elapsed = time.Since(now) //更新遍历时间
 		//尝试执行任务
 		tryStartJob(mini_plan_extract)
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now) //执行后,更新下次执行时间的值
@@ -59,14 +58,12 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 			return 0, err
 		}
 
-	}else{
-		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name," 未过期")
+	} else {
+		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " 未过期")
 	}
 
-
-
 	after_len := j.count
-	logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", endTime, " 元素个数:(before=", before_len, "/after=", after_len, ")")
+	logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", elapsed, " 元素个数:(before=", before_len, "/after=", after_len, ")")
 	return mini_plan.NextTime.Sub(now), nil //返回最小的时间,用于睡眠或定时
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
@@ -111,7 +108,7 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
-	logs.Debug("插入新的值item.Job.Name=",item.Job.Name)
+	logs.Debug("插入新的值item.Job.Name=", item.Job.Name)
 	//mh.PrintList()
 	//边界
 	myIndex := mh.count + 1
@@ -126,7 +123,7 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 	mh.keyIndex[item.Job.Name] = myIndex
 	mh.shiftUp(mh.count)
 	mh.count++
-	logs.Debug("再次插入mini_plan的值item.Job.Name=",item.Job.Name,",mh.count=",mh.count)
+	logs.Debug("再次插入mini_plan的值item.Job.Name=", item.Job.Name, ",mh.count=", mh.count)
 	//mh.PrintList()
 	return nil
 }
@@ -154,7 +151,7 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
 func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	Assert(e.count > 0)
-	
+
 	ret := e.data[1] //读取第一个,是最小值
 
 	//logs.Debug("ExtractMin: Before Swap ,Job.Name= ",ret.Job.Name," Size=",e.Size()," Count=",e.count)
@@ -188,12 +185,13 @@ func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
 	}
 	return &e.data[1]
 }
+
 // 判断arr数组是否有序
 func (e *JobPlanMinHeap) IsSorted() bool {
 
-	data := make([]*common.JobSchedulePlan,e.Size()+1)
+	data := make([]*common.JobSchedulePlan, e.Size()+1)
 	//从堆中依次取出元素
-	for i:=e.Size()-1;i>=0;i--{
+	for i := e.Size() - 1; i >= 0; i-- {
 		data[i] = e.ExtractMin()
 	}
 	for i := 0; i < e.Size()-1; i++ {
@@ -204,6 +202,7 @@ func (e *JobPlanMinHeap) IsSorted() bool {
 	}
 	return true
 }
+
 // 构造函数, 构造一个空堆, 可容纳capacity个元素
 func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 	logs.Debug("NewJobPlanMinHeap")

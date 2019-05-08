@@ -25,10 +25,10 @@ func (j *JobPlanMinHeap) PrintList() {
 	}
 
 }
-func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
+func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
 	var (
-		mini_plan         *common.JobSchedulePlan
-		mini_plan_extract *common.JobSchedulePlan
+		mini_plan         common.JobSchedulePlan
+		mini_plan_extract common.JobSchedulePlan
 	)
 	//计算时间
 	now := time.Now()
@@ -36,7 +36,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 
 	//获取堆顶元素
 	mini_plan = j.GetMin()
-	if nil == mini_plan {
+	if nil == mini_plan.Job {
 		return 0, nil
 	}
 	logs.Debug("GetMin item=", mini_plan.Job.Name)
@@ -47,14 +47,14 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	if isExpire && nil != tryStartJob {
 		 //从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
-		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, "已过期, 准备执行任务...")
+		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,NextTime=", mini_plan.NextTime, "已过期, 准备执行任务...")
 
 		elapsed = time.Since(now) //更新遍历时间
 		//尝试执行任务
 		tryStartJob(mini_plan_extract)
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now) //执行后,更新下次执行时间的值
 
-		if err := j.Insert(mini_plan_extract); err != nil {
+		if err := j.Insert(&mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err
 		}
@@ -161,7 +161,7 @@ func (mh *JobPlanMinHeap) Remove(key string) error {
 }
 
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
-func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
+func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	Assert(e.count > 0)
 
 	ret := e.data[1] //读取第一个,是最小值
@@ -176,7 +176,7 @@ func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	delete(e.keyIndex, ret.Job.Name) //删除key_value
 	//返回第一个
 	logs.Debug("ExtractMin: After Swap ,Job.Name=",ret.Job.Name )
-	return &ret
+	return ret
 
 }
 
@@ -191,11 +191,11 @@ func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
 }
 
 // 获取最小堆中的堆顶元素
-func (e *JobPlanMinHeap) GetMin() *common.JobSchedulePlan {
+func (e *JobPlanMinHeap) GetMin() common.JobSchedulePlan {
 	if e.count <= 0 {
-		return nil
+		return common.JobSchedulePlan{}
 	}
-	return &e.data[1]
+	return e.data[1]
 }
 
 // 判断arr数组是否有序
@@ -203,7 +203,7 @@ func (e *JobPlanMinHeap) IsSorted() bool {
 
 	data_size := e.Size() ;
 	logs.Info("Before ExtractMin,data_size=",data_size)
-	data := make([]*common.JobSchedulePlan,data_size)
+	data := make([]common.JobSchedulePlan,data_size)
 	//从堆中依次取出元素
 	for i := 0; i < data_size; i++ {
 		logs.Info("Before ExtractMin,Size=",i," ,Size=",e.Size())

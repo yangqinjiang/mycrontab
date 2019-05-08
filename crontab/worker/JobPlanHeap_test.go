@@ -53,7 +53,7 @@ func TestHeapSort(t *testing.T) {
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
-	SIZE := 1*10 //
+	SIZE := 1*10000 //
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -147,7 +147,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			//if remove_err != nil{
 			//	logs.Error(remove_err)
 			//}
-			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
+			miniTime, err1 := j.ExtractEarliest(func(jobPlan common.JobSchedulePlan) (err error) {
 				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
 				return nil
 			})

@@ -48,10 +48,10 @@ func TestJobPlanHeap(t *testing.T) {
 func TestExtractEarliestHeap(t *testing.T) {
 	logs.SetLevel(logs.LevelInfo)
 	// 简单的性能测试,如下:
-	// 1w, 耗时 1 ms~2 ms.
-	// 10w, 耗时 10 ms~20 ms.
-	// 100w, 耗时 100 ms以上.
-	SIZE := 10000
+	// 1w, 耗时 0 ms.
+	// 10w, 耗时 0 ms.
+	// 100w, 耗时 0 ms.
+	SIZE := 1000
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -70,7 +70,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			startTime := time.Now()
 			err = j.Insert(jj)
 			elapsed := time.Since(startTime)
-			logs.Info("插入一条数据:",one_job.Name," took :",  elapsed)
+			logs.Info("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
 			if err != nil {
 				t.Error(err.Error())
 			}
@@ -116,7 +116,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 	//	}
 	//}()
 
-	time.Sleep(10 * time.Second)
+	//time.Sleep(10 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

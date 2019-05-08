@@ -166,7 +166,7 @@ func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 
 	ret := e.data[1] //读取第一个,是最小值
 
-	//logs.Debug("ExtractMin: Before Swap ,Job.Name= ",ret.Job.Name," Size=",e.Size()," Count=",e.count)
+	logs.Debug("ExtractMin: Before Swap ,Job.Name= ",ret.Job.Name )
 
 	//交换最后和第一个元素,使它不是最小堆
 	e.swap(&e.data[1], &e.data[e.count])
@@ -175,7 +175,7 @@ func (e *JobPlanMinHeap) ExtractMin() *common.JobSchedulePlan {
 	e.shiftDown(1)
 	delete(e.keyIndex, ret.Job.Name) //删除key_value
 	//返回第一个
-	//logs.Debug("ExtractMin: After Swap ,Job.Name=",ret.Job.Name," Size=",e.Size()," Count=",e.count)
+	logs.Debug("ExtractMin: After Swap ,Job.Name=",ret.Job.Name )
 	return &ret
 
 }

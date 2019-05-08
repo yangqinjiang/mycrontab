@@ -42,7 +42,7 @@ func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSched
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
 			if nil != tryStartJob{
 				//尝试执行任务
-				//tryStartJob(jobPlan)
+				tryStartJob(jobPlan)
 				jobPlan.NextTime = jobPlan.Expr.Next(now) //执行后,更新下次执行时间的值
 			}
 

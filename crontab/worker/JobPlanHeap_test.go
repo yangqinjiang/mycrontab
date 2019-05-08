@@ -164,7 +164,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(60 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

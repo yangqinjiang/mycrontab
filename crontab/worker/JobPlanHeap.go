@@ -47,13 +47,20 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSche
 	if isExpire && nil != tryStartJob {
 		 //从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
-		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,NextTime=", mini_plan.NextTime, "已过期, 准备执行任务...")
-
+		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,执行时间=", mini_plan.NextTime, "已过期, 准备执行任务...")
+		if mini_plan.Job != mini_plan_extract.Job{
+			panic("从GetMin得到的Job 不等于 ExtractMin得到的Jog")
+		}
+		//判断执行时间与当前时间是否差太多
+		//if time.Now().Sub(mini_plan_extract.NextTime).Seconds() > 1.{
+		//	panic("执行时间与当前时间 的差, > 1s ")
+		//}
 		elapsed = time.Since(now) //更新遍历时间
 		//尝试执行任务
 		tryStartJob(mini_plan_extract)
-		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now) //执行后,更新下次执行时间的值
-
+		//执行后,更新下次执行时间的值
+		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
+		logs.Debug("执行后,更新下次执行时间的值 item_1=", mini_plan_extract.Job.Name, " ,下次执行时间=", mini_plan_extract.NextTime)
 		if err := j.Insert(&mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err

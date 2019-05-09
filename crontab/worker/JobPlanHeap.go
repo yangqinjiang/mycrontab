@@ -22,6 +22,11 @@ type JobPlanMinHeap struct {
 	jobPlanMap   map[string]int //使用map,保存任务调度计划元素
 }
 
+func (j *JobPlanMinHeap)SizeTrue() bool  {
+	logs.Info("indexes len -1 =",len(j.indexes)-1," ,jobPlanTable len -1 =",len(j.jobPlanTable)-1, " ,jobPlanMap len=",len(j.jobPlanMap))
+	//
+	return len(j.indexes) -1  == len(j.jobPlanTable) - 1 && len(j.jobPlanTable) - 1 == len(j.jobPlanMap)
+}
 func (j *JobPlanMinHeap) PrintList() {
 	for i := 1; i <= j.Size(); i++ {
 		//logs.Debug(j.indexes[i].Job, j.indexes[i].NextTime, j.indexes[i].Job.CronExpr)
@@ -78,7 +83,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSche
 	return mini_plan.NextTime.Sub(now), nil //返回最小的时间,用于睡眠或定时
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
-	for k > 1 && mh.indexes[k/2] > mh.indexes[k] {
+	for k > 1 && mh.jobPlanTable[mh.indexes[k/2]].NextTime.Unix() > mh.jobPlanTable[mh.indexes[k]].NextTime.Unix() {
 		mh.swap(&mh.indexes[k/2], &mh.indexes[k])
 		k /= 2
 	}
@@ -86,12 +91,12 @@ func (mh *JobPlanMinHeap) shiftUp(k int) {
 func (mh *JobPlanMinHeap) shiftDown(k int) {
 	for 2*k <= mh.count {
 		j := 2 * k //在此轮循环中,indexes[k]和data[j]交换位置
-		if j+1 <= mh.count && mh.indexes[j+1] < mh.indexes[j] {
+		if j+1 <= mh.count && mh.jobPlanTable[mh.indexes[j+1]].NextTime.Unix()< mh.jobPlanTable[mh.indexes[j]].NextTime.Unix() {
 			//左右子节点最小的一个
 			j++
 		}
 		// indexes[j] 是 indexes[2*k]和data[2*k+1]中的最小值
-		if mh.indexes[k] <= mh.indexes[j] {
+		if mh.jobPlanTable[mh.indexes[k]].NextTime.Unix() <= mh.jobPlanTable[mh.indexes[j]].NextTime.Unix() {
 			break
 		}
 
@@ -125,13 +130,14 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 		return errors.New("已存在 "+item.Job.Name+" 任务,并更新它")
 	}
 	//边界
-	if !(mh.count + 1 <= mh.capacity)  {
-		return errors.New("任务数量 已超出额定边界")
-	}
-	if !(mh.count+1 >= 1 && mh.count + 1 <= mh.capacity ){
-		return errors.New("任务数量 已超出额定边界")
-	}
 	i := mh.count + 1
+	if !(i <= mh.capacity)  {
+		return errors.New("任务数量 已超出额定边界")
+	}
+	if !(i >= 1 && i <= mh.capacity ){
+		return errors.New("任务数量 已超出额定边界")
+	}
+
 	logs.Debug("插入新的JobPlan值 Job.Name=", item.Job.Name)
 
 	//保存到索引数组
@@ -149,16 +155,8 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
 // 使用key 删除一个任务
 func (mh *JobPlanMinHeap) Remove(key string) error {
-	//存在,则更新字段值
-	//if myIndex, exist := mh.keyIndex[key]; exist {
-	//
-	//	logs.Debug(myIndex)
-	//
-	//	return nil
-	//}
 
-	return errors.New("删除失败,不存在这个数据key= " + key)
-
+	return errors.New("不能进行删除key= " + key)
 }
 
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
@@ -175,7 +173,7 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	e.count--
 	//进行 shiftDown
 	e.shiftDown(1)
-	//delete(e.keyIndex, ret.Job.Name) //删除key_value
+	delete(e.jobPlanMap, plan.Job.Name) //删除key_value
 	//返回第一个
 	logs.Debug("ExtractMin: After Swap ,Job.Name=", plan.Job.Name)
 	return plan
@@ -183,7 +181,7 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 }
 
 // 将最小堆中索引为i的元素修改为newItem
-func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
+func (e *JobPlanMinHeap) Change(key string, newItem common.JobSchedulePlan) {
 	//存在,则修改
 	var i int64;
 	i = 0
@@ -214,18 +212,18 @@ func (e *JobPlanMinHeap) GetMin() common.JobSchedulePlan {
 func (e *JobPlanMinHeap) IsSorted() bool {
 
 	data_size := e.Size()
-	logs.Info("Before ExtractMin,data_size=", data_size)
+	logs.Debug("Before ExtractMin,data_size=", data_size)
 	data := make([]common.JobSchedulePlan, data_size)
 	//从堆中依次取出元素
 	for i := 0; i < data_size; i++ {
-		logs.Info("Before ExtractMin,Size=", i, " ,Size=", e.Size())
+		logs.Debug("Before ExtractMin,Size=", i, " ,Size=", e.Size())
 		data[i] = e.ExtractMin()
 	}
-	logs.Info("After ExtractMin,Size=", e.Size())
+	logs.Debug("After ExtractMin,Size=", e.Size())
 	for i := 0; i < data_size-1; i++ {
-		logs.Info(data[i].Job.Name, data[i].NextTime.Unix())
+		logs.Debug(data[i].Job.Name, data[i].NextTime.Unix())
 		if data[i].NextTime.Unix() > data[i+1].NextTime.Unix() {
-			logs.Info("ERROR: ", data[i+1].Job.Name, data[i+1].NextTime.Unix())
+			logs.Error("ERROR: ", data[i+1].Job.Name, data[i+1].NextTime.Unix())
 			return false
 		}
 	}

@@ -36,13 +36,8 @@ func TestJobPlanHeap(t *testing.T) {
 	if 3 != j.Size() {
 		t.Fatal("Insert 失败,数量 != 3")
 	}
-
-	//删除
-	j.Remove("job_2")
-	j.Remove("job_2")
-	j.Remove("job_2")
-	if 2 != j.Size() {
-		t.Fatal("Remove 失败,数量 != 2 实际是:", j.Size())
+	if !j.SizeTrue(){
+		t.Fatal("三种容器的len不一致")
 	}
 }
 
@@ -53,7 +48,7 @@ func TestHeapSort(t *testing.T) {
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
-	SIZE := 1*10000 //
+	SIZE := 100*10000 //
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -72,7 +67,7 @@ func TestHeapSort(t *testing.T) {
 			startTime := time.Now()
 			err = j.Insert(jj)
 			elapsed := time.Since(startTime)
-			logs.Info("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
+			logs.Debug("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
 			if err != nil {
 				t.Error(err.Error())
 			}
@@ -83,6 +78,9 @@ func TestHeapSort(t *testing.T) {
 	}
 	if SIZE != j.Size() {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
+	}
+	if !j.SizeTrue(){
+		t.Fatal("三种容器的len不一致")
 	}
 
 	logs.Info("排序...")
@@ -135,12 +133,14 @@ func TestHeapSortRemoveSort(t *testing.T) {
 	if SIZE != j.Size() {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
 	}
-
-	//测试删除
-	for i := 1; i <= SIZE/2; i++  {
-		istr := strconv.Itoa(i)
-		j.Remove("job_"+istr) //删除
+	if !j.SizeTrue(){
+		t.Fatal("三种容器的len不一致")
 	}
+	//测试删除
+	//for i := 1; i <= SIZE/2; i++  {
+	//	istr := strconv.Itoa(i)
+	//	j.Remove("job_"+istr) //删除
+	//}
 	//检查是否排序
 	if j.IsSorted(){
 		t.Log("删除后,排序正常")

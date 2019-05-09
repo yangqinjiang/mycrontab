@@ -19,6 +19,7 @@ type JobPlanMinHeap struct {
 	capacity       int
 
 	jobPlanTable   []common.JobSchedulePlan //使用map,保存任务调度计划元素
+	jobPlanMap   map[string]int //使用map,保存任务调度计划元素
 }
 
 func (j *JobPlanMinHeap) PrintList() {
@@ -119,6 +120,10 @@ func (mh *JobPlanMinHeap) IsEmpty() bool {
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
+	if index,exist:=mh.jobPlanMap[item.Job.Name];exist{
+		mh.jobPlanTable[index] = *item
+		return errors.New("已存在 "+item.Job.Name+" 任务,并更新它")
+	}
 	//边界
 	if !(mh.count + 1 <= mh.capacity)  {
 		return errors.New("任务数量 已超出额定边界")
@@ -132,7 +137,8 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 	//保存到索引数组
 	mh.indexes[i] = int64(i)
 	// 保存到map
-	mh.jobPlanTable[mh.count + 1] = *item  //
+	mh.jobPlanTable[i] = *item  //
+	mh.jobPlanMap[item.Job.Name] = i //保存JobName为索引
 
 	mh.count++
 	mh.shiftUp(mh.count)
@@ -231,6 +237,7 @@ func NewJobPlanMinHeap(capacity int) *JobPlanMinHeap {
 	logs.Debug("NewJobPlanMinHeap")
 	return &JobPlanMinHeap{indexes: make([]int64, capacity+1, capacity+1),
 		jobPlanTable: make([]common.JobSchedulePlan,capacity+1, capacity+1),
+		jobPlanMap: make(map[string]int,capacity+1),
 		count:    0,
 		capacity: capacity}
 }

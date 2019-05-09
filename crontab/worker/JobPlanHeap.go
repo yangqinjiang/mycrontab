@@ -179,11 +179,19 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 // 将最小堆中索引为i的元素修改为newItem
 func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
 	//存在,则修改
-	//if myIndex, exist := e.keyIndex[key]; exist {
-	//	i := myIndex + 1
-	//	e.indexes[i] = newItem
-	//	e.shiftDown(i)
-	//}
+	var i int64;
+	i = 0
+	i+=1
+	e.jobPlanTable[i]= newItem
+	// 找到indexes[j] = i, j表示data[i]在堆中的位置
+	// 之后shiftUp(j), 再shiftDown(j)
+	for j:=1;j<=e.count;j++{
+		if e.indexes[j] == i{
+			e.shiftUp(j)
+			e.shiftDown(j)
+			return
+		}
+	}
 }
 
 // 获取最小堆中的堆顶元素

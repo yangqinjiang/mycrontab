@@ -70,7 +70,8 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
 		logs.Debug("执行后,更新下次执行时间的值 item_1=", mini_plan_extract.Job.Name, " ,下次执行时间=", mini_plan_extract.NextTime)
 		//TODO: 问题点
-		if err := j.Insert(&mini_plan_extract); err != nil {
+
+		if err := j.InsertAgain(&mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err
 		}
@@ -120,7 +121,31 @@ func (mh *JobPlanMinHeap) Size() int {
 func (mh *JobPlanMinHeap) IsEmpty() bool {
 	return mh.count == 0
 }
-
+//再次插入原有数据
+func (mh *JobPlanMinHeap)InsertAgain(item *common.JobSchedulePlan) error  {
+	index,exist := mh.jobPlanMap[item.Job.Name] //
+	if !exist{
+		return errors.New("不存在此Job,Name="+item.Job.Name)
+	}
+	
+	//index+=1
+	mh.jobPlanTable[index]= *item
+	// 找到indexes[j] = i, j表示data[i]在堆中的位置
+	// 之后shiftUp(j), 再shiftDown(j)
+	count := mh.count + 1
+	for j:=1;j<=count;j++{
+		if mh.indexes[j] == int64(index){
+			logs.Debug("存在mh.indexes[j] == int64(index)",j,index," ,mh.count=",mh.count)
+			mh.count ++
+			mh.shiftUp(j)
+			mh.shiftDown(j)
+			return nil
+		}else{
+			logs.Error("indexes不存在 mh.indexes=",mh.indexes," ,index=",index," ,j=",j," , count=",count)
+		}
+	}
+	return nil
+}
 // 向最小堆中插入一个新的元素 item
 func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
@@ -195,7 +220,7 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	e.count--
 	//进行 shiftDown
 	e.shiftDown(1)
-	delete(e.jobPlanMap, plan.Job.Name) //删除key_value
+	//delete(e.jobPlanMap, plan.Job.Name) //删除key_value
 	//返回第一个
 	logs.Debug("ExtractMin: After Swap ,e.indexes=", e.indexes," ,e.count=",e.count)
 	return plan

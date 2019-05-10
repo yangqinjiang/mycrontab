@@ -115,7 +115,8 @@ func TestExtractEarliestHeap(t *testing.T) {
 			i_60 = 1
 		}
 
-		i_60_str := "1"//strconv.Itoa(i_60)
+		//i_60_str := "1"
+		i_60_str := strconv.Itoa(i_60)
 		one_job := &common.Job{Name: "job_" + istr, CronExpr: "*/" + i_60_str + " * * * * * *"}
 		jj, err := common.BuildJobSchedulePlan(one_job)
 		if err == nil {
@@ -143,18 +144,8 @@ func TestExtractEarliestHeap(t *testing.T) {
 			//}
 			logs.Info("")
 			logs.Info("for...",os.Getpid())
-			//随机删除一些数据
-
-			//name := "job_"+strconv.Itoa(3)
-			//logs.Debug("will remove  key=",name," ,size=",j.Size())
-			//remove_err := j.Remove(name,&common.Job{Name:name,CronExpr:"* * * * * * *"})
-			//if remove_err != nil{
-			//	logs.Error(remove_err," ,key=",name," ,size=",j.Size())
-			//}else{
-			//	logs.Debug("remove success  ,key=",name," ,size=",j.Size())
-			//}
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Debug("执行任务", jobPlan.Job.Name, " ,下次执行时间=", jobPlan.NextTime)
+				logs.Debug("执行任务", jobPlan.Job.Name, " ,本次执行时间=", jobPlan.NextTime)
 				return nil
 			})
 			if err1 != nil {
@@ -176,7 +167,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(20*1 * time.Second)
+	time.Sleep(600*1 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

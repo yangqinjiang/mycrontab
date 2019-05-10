@@ -168,7 +168,6 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
 	//保存到索引数组
 	mh.indexes[i] = int64(i)
-	//mh.indexes = append(mh.indexes, int64(i))
 	logs.Debug("Insert func ,Indexes=",mh.indexes)
 	// 保存到map
 	mh.jobPlanTable[i] = *item  //

@@ -23,7 +23,7 @@ func (j *JobPlanArray) Insert(info *common.JobSchedulePlan) error {
 }
 
 // 使用key 删除一个任务
-func (j *JobPlanArray) Remove(key string) error {
+func (j *JobPlanArray) Remove(key string,newItem *common.Job) error {
 	//首先检查是否已存在此任务 (内存)
 	if _, jobExisted := j.jobPlanTable[key]; jobExisted {
 		delete(j.jobPlanTable, key)
@@ -59,7 +59,7 @@ func (j *JobPlanArray) ExtractEarliest(tryStartJob func(jobPlan *common.JobSched
 		}
 	}
 
-	logs.Debug("JobPlanArray ForEach 遍历耗时: ",time.Since(startTime))
+	logs.Debug("JobPlanArray ExtractEarliest ForEach 遍历耗时: ",time.Since(startTime))
 	//下次调度间隔,(最近要执行的任务调度时间 - 当前时间)
 	return (*nearTime).Sub(now),nil
 }

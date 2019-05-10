@@ -66,7 +66,8 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 		}
 	case common.JOB_EVENT_DELETE: //删除任务事件
 		logs.Info("删除任务:", jobEvent.Job.Name)
-		scheduler.jobPlanManager.Remove(jobEvent.Job.Name)
+
+		scheduler.jobPlanManager.Remove(jobEvent.Job.Name,jobEvent.Job)
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {

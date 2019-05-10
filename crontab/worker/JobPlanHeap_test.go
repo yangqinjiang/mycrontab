@@ -96,59 +96,6 @@ func TestHeapSort(t *testing.T) {
 	logs.Info("排序 over")
 
 }
-func TestHeapSortRemoveSort(t *testing.T) {
-	//logs.SetLevel(logs.LevelInfo)
-	// 简单的性能测试,如下:
-	// 1w, 耗时 0 ms.
-	// 10w, 耗时 0 ms.
-	// 100w, 耗时 0 ms.
-	SIZE := 1*100 //
-	j := NewJobPlanMinHeap(SIZE)
-	for i := 1; i <= SIZE; i++ {
-		istr := strconv.Itoa(i)
-		i_60 := i
-		if i >= 60 { //大于 60,求余数
-			i_60 = i % 60
-		}
-		if i_60 <= 0 {
-			i_60 = 1
-		}
-
-		i_60_str := strconv.Itoa(i_60)
-		one_job := &common.Job{Name: "job_" + istr, CronExpr: "*/" + i_60_str + " * * * * * *"}
-		jj, err := common.BuildJobSchedulePlan(one_job)
-		if err == nil {
-			startTime := time.Now()
-			err = j.Insert(jj)
-			elapsed := time.Since(startTime)
-			logs.Info("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
-			if err != nil {
-				t.Error(err.Error())
-			}
-		} else {
-			t.Error(err.Error())
-		}
-
-	}
-	if SIZE != j.Size() {
-		t.Fatal("Insert 失败,数量 != ", SIZE)
-	}
-	if !j.SizeTrue(){
-		t.Fatal("三种容器的len不一致")
-	}
-	//测试删除
-	//for i := 1; i <= SIZE/2; i++  {
-	//	istr := strconv.Itoa(i)
-	//	j.Remove("job_"+istr) //删除
-	//}
-	//检查是否排序
-	if j.IsSorted(){
-		t.Log("删除后,排序正常")
-	}else{
-		t.Fatal("删除后,排序不对")
-	}
-
-}
 //找出最早的
 func TestExtractEarliestHeap(t *testing.T) {
 
@@ -198,7 +145,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			//if remove_err != nil{
 			//	logs.Error(remove_err)
 			//}
-			miniTime, err1 := j.ExtractEarliest(func(jobPlan common.JobSchedulePlan) (err error) {
+			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
 				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
 				return nil
 			})

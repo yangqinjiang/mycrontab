@@ -32,9 +32,9 @@ func TestJobPlanArray(t *testing.T) {
 	}
 
 	//删除
-	j.Remove("job_2")
-	j.Remove("job_2")
-	j.Remove("job_2")
+	j.Remove("job_2",nil)
+	j.Remove("job_2",nil)
+	j.Remove("job_2",nil)
 	if 2 != j.Size(){
 		t.Fatal("Remove 失败,数量 != 2")
 	}
@@ -82,7 +82,7 @@ func TestExtractEarliest(t *testing.T) {
 	}()
 
 
-	time.Sleep(6000*time.Second)
+	time.Sleep(60*time.Second)
 	t.Log("run over...")
 
 }

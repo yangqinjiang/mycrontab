@@ -33,7 +33,7 @@ func (j *JobPlanMinHeap) PrintList() {
 	}
 
 }
-func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
+func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSchedulePlan) (err error)) (t time.Duration, err error) {
 	var (
 		mini_plan         common.JobSchedulePlan
 		mini_plan_extract common.JobSchedulePlan
@@ -55,6 +55,10 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSche
 	if isExpire && nil != tryStartJob {
 		//从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
+		if mini_plan_extract.Del{
+			logs.Error("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name,"已标识为DEL,跳过,不执行任务")
+			return 0,nil
+		}
 		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,执行时间=", mini_plan.NextTime, "已过期, 准备执行任务...")
 		if mini_plan.Job != mini_plan_extract.Job {
 			panic("从GetMin得到的Job 不等于 ExtractMin得到的Jog")
@@ -65,7 +69,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan common.JobSche
 		//}
 		elapsed = time.Since(now) //更新遍历时间
 		//尝试执行任务
-		tryStartJob(mini_plan_extract)
+		tryStartJob(&mini_plan_extract)
 		//执行后,更新下次执行时间的值
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
 		logs.Debug("执行后,更新下次执行时间的值 item_1=", mini_plan_extract.Job.Name, " ,下次执行时间=", mini_plan_extract.NextTime)
@@ -154,9 +158,14 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 }
 
 // 使用key 删除一个任务
-func (mh *JobPlanMinHeap) Remove(key string) error {
-
-	return errors.New("不能进行删除key= " + key)
+func (mh *JobPlanMinHeap) Remove(key string,newItem *common.Job) error {
+	jobSchedulePlan, err := common.BuildJobSchedulePlan(newItem);
+	if err != nil {
+		return err
+	}
+	jobSchedulePlan.Del = true
+	mh.change(key,*jobSchedulePlan)
+	return nil
 }
 
 // 从最小堆中取出堆顶元素, 即堆中所存储的最小数据
@@ -181,10 +190,14 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 }
 
 // 将最小堆中索引为i的元素修改为newItem
-func (e *JobPlanMinHeap) Change(key string, newItem common.JobSchedulePlan) {
+func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
 	//存在,则修改
-	var i int64;
-	i = 0
+	var index int;
+	index , exist := e.jobPlanMap[key]
+	if !exist{
+		return
+	}
+	i := int64(index)
 	i+=1
 	e.jobPlanTable[i]= newItem
 	// 找到indexes[j] = i, j表示data[i]在堆中的位置

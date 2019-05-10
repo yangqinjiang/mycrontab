@@ -22,7 +22,7 @@ type JobPlanManager interface {
 	//插入一个任务
 	Insert(info *common.JobSchedulePlan)(error)
 	// 使用key 删除一个任务
-	Remove(key string)(error)
+	Remove(key string,newItem  *common.Job)(error)
 	//找出最早
 	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration,error)
 }

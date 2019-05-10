@@ -22,6 +22,7 @@ type JobSchedulePlan struct {
 	Job      *Job                 //要调度的任务信息
 	Expr     *cronexpr.Expression //解释好的cronexpr表达式
 	NextTime time.Time            //下次调度时间
+	Del bool
 }
 
 //任务执行状态

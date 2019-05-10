@@ -185,6 +185,7 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error
 		Job:      job,
 		Expr:     expr,
 		NextTime: expr.Next(time.Now()), //根据当前时间,计算下次时间
+		Del:false,
 	}
 	return
 }

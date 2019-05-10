@@ -159,7 +159,7 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
 // 使用key 删除一个任务
 func (mh *JobPlanMinHeap) Remove(key string,newItem *common.Job) error {
-	jobSchedulePlan, err := common.BuildJobSchedulePlan(newItem);
+	jobSchedulePlan, err := common.BuildJobSchedulePlan(newItem)
 	if err != nil {
 		return err
 	}
@@ -195,6 +195,7 @@ func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
 	var index int;
 	index , exist := e.jobPlanMap[key]
 	if !exist{
+		logs.Error("不存在key=",key,"的Job")
 		return
 	}
 	i := int64(index)

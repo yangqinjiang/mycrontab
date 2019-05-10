@@ -103,7 +103,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
-	SIZE := 10
+	SIZE := 5
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -115,7 +115,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			i_60 = 1
 		}
 
-		i_60_str := strconv.Itoa(i_60)
+		i_60_str := "1"//strconv.Itoa(i_60)
 		one_job := &common.Job{Name: "job_" + istr, CronExpr: "*/" + i_60_str + " * * * * * *"}
 		jj, err := common.BuildJobSchedulePlan(one_job)
 		if err == nil {
@@ -135,22 +135,26 @@ func TestExtractEarliestHeap(t *testing.T) {
 		t.Fatal("Insert 失败,数量 != ", SIZE)
 	}
 
-
 	go func() {
+		//scheduleTimer := time.NewTimer(1*time.Second)
 		for {
+			//select {
+			//	case <-scheduleTimer.C: //最近的任务到期了
+			//}
 			logs.Info("")
 			logs.Info("for...",os.Getpid())
 			//随机删除一些数据
-			name := "job_"+strconv.Itoa(randInt(1,j.Size()))
-			logs.Debug("will remove  key=",name," ,size=",j.Size())
-			remove_err := j.Remove(name,&common.Job{Name:name,CronExpr:"* * * * * * *"})
-			if remove_err != nil{
-				logs.Error(remove_err," ,key=",name," ,size=",j.Size())
-			}else{
-				logs.Debug("remove success  ,key=",name," ,size=",j.Size())
-			}
+
+			//name := "job_"+strconv.Itoa(3)
+			//logs.Debug("will remove  key=",name," ,size=",j.Size())
+			//remove_err := j.Remove(name,&common.Job{Name:name,CronExpr:"* * * * * * *"})
+			//if remove_err != nil{
+			//	logs.Error(remove_err," ,key=",name," ,size=",j.Size())
+			//}else{
+			//	logs.Debug("remove success  ,key=",name," ,size=",j.Size())
+			//}
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Info("执行任务", jobPlan.Job.Name," ,after ", jobPlan.NextTime.Sub(time.Now()))
+				logs.Debug("执行任务", jobPlan.Job.Name, " ,下次执行时间=", jobPlan.NextTime)
 				return nil
 			})
 			if err1 != nil {
@@ -160,13 +164,19 @@ func TestExtractEarliestHeap(t *testing.T) {
 
 			logs.Info("sleep ", miniTime.Seconds(), "s","...end")
 
-			time.Sleep(miniTime)
+			//scheduleTimer.Reset(100*time.Millisecond)
+			if miniTime.Seconds() <= 0{
+				time.Sleep(100*time.Millisecond)
+			}else{
+				time.Sleep(miniTime)
+			}
+
 
 
 		}
 	}()
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(20*1 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

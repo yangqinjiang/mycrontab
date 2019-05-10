@@ -178,6 +178,7 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error
 	)
 	//解析JOB的crontab表达式
 	if expr, err = cronexpr.Parse(job.CronExpr); err != nil {
+		logs.Error("解析JOB的crontab表达式 出错")
 		return
 	}
 	//生成任务调度计划对象

@@ -40,14 +40,13 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	)
 	//计算时间
 	now := time.Now()
-	before_len := j.count
 
 	//获取堆顶元素
 	mini_plan = j.GetMin()
 	if nil == mini_plan.Job {
 		return 0, nil
 	}
-	logs.Debug("GetMin item=", mini_plan.Job.Name)
+	logs.Debug("GetMin item=", j.indexes)
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(now) || mini_plan.NextTime.Equal(now)
 	elapsed := time.Since(now)
@@ -56,23 +55,21 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		//从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
 		if mini_plan_extract.Del{
-			logs.Error("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name,"已标识为DEL,跳过,不执行任务")
+			logs.Error("已标识为DEL的最小堆顶元素 item_1=", mini_plan_extract.Job.Name,"已标识为DEL,跳过,不执行任务")
 			return 0,nil
 		}
 		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,执行时间=", mini_plan.NextTime, "已过期, 准备执行任务...")
 		if mini_plan.Job != mini_plan_extract.Job {
 			panic("从GetMin得到的Job 不等于 ExtractMin得到的Jog")
 		}
-		//判断执行时间与当前时间是否差太多
-		//if time.Now().Sub(mini_plan_extract.NextTime).Seconds() > 1.{
-		//	panic("执行时间与当前时间 的差, > 1s ")
-		//}
 		elapsed = time.Since(now) //更新遍历时间
+		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", elapsed)
 		//尝试执行任务
 		tryStartJob(&mini_plan_extract)
 		//执行后,更新下次执行时间的值
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
 		logs.Debug("执行后,更新下次执行时间的值 item_1=", mini_plan_extract.Job.Name, " ,下次执行时间=", mini_plan_extract.NextTime)
+		//TODO: 问题点
 		if err := j.Insert(&mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err
@@ -82,8 +79,6 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " 未过期")
 	}
 
-	after_len := j.count
-	logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", elapsed, " 元素个数:(before=", before_len, "/after=", after_len, ")")
 	return mini_plan.NextTime.Sub(now), nil //返回最小的时间,用于睡眠或定时
 }
 func (mh *JobPlanMinHeap) shiftUp(k int) {
@@ -133,8 +128,10 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 		mh.jobPlanTable[index] = *item
 		return errors.New("已存在 "+item.Job.Name+" 任务,并更新它")
 	}
+
 	//边界
 	i := mh.count + 1
+	logs.Debug(" Before Insert mh.count=",mh.count," ,i=",i)
 	if !(i <= mh.capacity)  {
 		return errors.New("任务数量 已超出额定边界")
 	}
@@ -146,25 +143,41 @@ func (mh *JobPlanMinHeap) Insert(item *common.JobSchedulePlan) error {
 
 	//保存到索引数组
 	mh.indexes[i] = int64(i)
+	//mh.indexes = append(mh.indexes, int64(i))
+	logs.Debug("Insert func ,Indexes=",mh.indexes)
 	// 保存到map
 	mh.jobPlanTable[i] = *item  //
 	mh.jobPlanMap[item.Job.Name] = i //保存JobName为索引
 
 	mh.count++
 	mh.shiftUp(mh.count)
-	logs.Debug("再次插入mini_plan的值item.Job.Name=", item.Job.Name, ",mh.count=", mh.count)
+	logs.Debug("再次插入mini_plan的值item.Job.Name=", item.Job.Name,item.NextTime,item.Job.CronExpr, ",mh.count=", mh.count)
 
 	return nil
 }
 
 // 使用key 删除一个任务
+// 将最小堆中索引为i的元素修改为newItem
 func (mh *JobPlanMinHeap) Remove(key string,newItem *common.Job) error {
+
+	//存在,则修改
+	var index int;
+	index , exist := mh.jobPlanMap[key]
+	if !exist{
+		err_str := "Remove,不存在key="+key+"的Job"
+		logs.Error(err_str)
+		return errors.New(err_str)
+	}
 	jobSchedulePlan, err := common.BuildJobSchedulePlan(newItem)
 	if err != nil {
 		return err
 	}
 	jobSchedulePlan.Del = true
-	mh.change(key,*jobSchedulePlan)
+
+	i := int64(index)
+	logs.Error("Remove & change",key,"的Job"," ,index=",i)
+	mh.jobPlanTable[i]= *jobSchedulePlan
+	delete(mh.jobPlanMap,key)
 	return nil
 }
 
@@ -172,10 +185,10 @@ func (mh *JobPlanMinHeap) Remove(key string,newItem *common.Job) error {
 func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	Assert(e.count > 0)
 
-	planIndex := e.indexes[1] //读取第一个,是最小值
-	plan := e.jobPlanTable[planIndex];
+	 //读取第一个,是最小值
+	plan := e.jobPlanTable[e.indexes[1]]
 
-	logs.Debug("ExtractMin: Before Swap ,Job.Name= ", plan.Job.Name)
+	//logs.Debug("ExtractMin: Before Swap ,Job.Name= ", plan.Job.Name)
 
 	//交换最后和第一个元素,使它不是最小堆
 	e.swap(&e.indexes[1], &e.indexes[e.count])
@@ -184,33 +197,11 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	e.shiftDown(1)
 	delete(e.jobPlanMap, plan.Job.Name) //删除key_value
 	//返回第一个
-	logs.Debug("ExtractMin: After Swap ,Job.Name=", plan.Job.Name)
+	logs.Debug("ExtractMin: After Swap ,e.indexes=", e.indexes," ,e.count=",e.count)
 	return plan
 
 }
 
-// 将最小堆中索引为i的元素修改为newItem
-func (e *JobPlanMinHeap) change(key string, newItem common.JobSchedulePlan) {
-	//存在,则修改
-	var index int;
-	index , exist := e.jobPlanMap[key]
-	if !exist{
-		logs.Error("不存在key=",key,"的Job")
-		return
-	}
-	i := int64(index)
-	i+=1
-	e.jobPlanTable[i]= newItem
-	// 找到indexes[j] = i, j表示data[i]在堆中的位置
-	// 之后shiftUp(j), 再shiftDown(j)
-	for j:=1;j<=e.count;j++{
-		if e.indexes[j] == i{
-			e.shiftUp(j)
-			e.shiftDown(j)
-			return
-		}
-	}
-}
 
 // 获取最小堆中的堆顶元素
 func (e *JobPlanMinHeap) GetMin() common.JobSchedulePlan {

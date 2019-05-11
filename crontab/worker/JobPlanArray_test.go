@@ -6,7 +6,16 @@ import (
 	"testing"
 	"time"
 )
+func TestJobPlanArrayIsJobPlanManager(t *testing.T)  {
 
+
+	j := NewJobPlanArray()
+	_,ok:=interface{}(j).(JobPlanManager)
+
+	if !ok{
+		t.Fatal("JobPlanArray没有实现JobPlanManager接口的方法")
+	}
+}
 func TestJobPlanArray(t *testing.T) {
 	j  := NewJobPlanArray()
 	job_1 := &common.Job{Name: "job_1",CronExpr:"* * * * *"}

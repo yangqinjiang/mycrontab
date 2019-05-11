@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
-	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 )
 
+func TestJobPlanHeapIsJobPlanManager(t *testing.T)  {
+
+	SIZE := 1
+	j := NewJobPlanMinHeap(SIZE)
+	_,ok:=interface{}(j).(JobPlanManager)
+
+	if !ok{
+		t.Fatal("JobPlanMinHeap没有实现JobPlanManager接口的方法")
+	}
+}
 func TestJobPlanHeap(t *testing.T) {
 
 	SIZE := 3
@@ -48,7 +57,7 @@ func TestHeapSort(t *testing.T) {
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
-	SIZE := 100*10000 //
+	SIZE := 1*10000 //
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -98,7 +107,7 @@ func TestHeapSort(t *testing.T) {
 }
 //找出最早的
 func TestExtractEarliestHeap(t *testing.T) {
-
+	logs.SetLevel(logs.LevelInfo)
 	// 简单的性能测试,如下:
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
@@ -143,9 +152,9 @@ func TestExtractEarliestHeap(t *testing.T) {
 			//	case <-scheduleTimer.C: //最近的任务到期了
 			//}
 			logs.Info("")
-			logs.Info("for...",os.Getpid())
+			logs.Debug("for...",os.Getpid())
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
-				logs.Debug("执行任务", jobPlan.Job.Name, " ,本次执行时间=", jobPlan.NextTime)
+				logs.Info("执行任务", jobPlan.Job.Name, " ,本次执行时间=", jobPlan.NextTime)
 				return nil
 			})
 			if err1 != nil {
@@ -172,8 +181,5 @@ func TestExtractEarliestHeap(t *testing.T) {
 	t.Log("run over...")
 
 }
-func randInt(min int , max int) int {
-	rand.Seed( time.Now().UTC().UnixNano())
-	return min + rand.Intn(max-min)
-}
+
 

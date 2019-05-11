@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/pkg/errors"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
@@ -46,30 +47,33 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	if nil == mini_plan.Job {
 		return 0, nil
 	}
-	logs.Debug("GetMin item=", j.indexes)
+	logs.Info("ExtractEarliest min item=",mini_plan.Job.Name, j.indexes)
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(now) || mini_plan.NextTime.Equal(now)
 	elapsed := time.Since(now)
 	//这里执行任务
 	if isExpire && nil != tryStartJob {
+
+		now = time.Now()
 		//从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
+		elapsed = time.Since(now) //更新遍历时间
+		logs.Info("取出最小堆顶元素,任务名称= [ ",mini_plan_extract.Job.Name, " ],执行时间= [ ", mini_plan_extract.NextTime," ],并重新进行 shiftDown,耗时: ", elapsed)
 		if mini_plan_extract.Del{
-			logs.Error("已标识为DEL的最小堆顶元素 item_1=", mini_plan_extract.Job.Name,"已标识为DEL,跳过,不执行任务")
+			logs.Error("已标识为DEL,跳过,不执行任务")
 			return 0,nil
 		}
-		logs.Debug("取出最小堆顶元素 item_1=", mini_plan_extract.Job.Name, " ,执行时间=", mini_plan.NextTime, "已过期, 准备执行任务...")
+
 		if mini_plan.Job != mini_plan_extract.Job {
-			panic("从GetMin得到的Job 不等于 ExtractMin得到的Jog")
+			panic(fmt.Sprintf("从GetMin得到的[ %s ]Job 与 ExtractMin得到的[ %s ] Job 不是同一个",mini_plan.Job.Name,mini_plan_extract.Job.Name))
 		}
-		elapsed = time.Since(now) //更新遍历时间
-		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " ,NextTime=", mini_plan.NextTime, "遍历耗时: ", elapsed)
+
+		logs.Info("已过期, 准备执行任务...")
 		//尝试执行任务
 		tryStartJob(&mini_plan_extract)
 		//执行后,更新下次执行时间的值
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
-		logs.Debug("执行后,更新下次执行时间的值 item_1=", mini_plan_extract.Job.Name, " ,下次执行时间=", mini_plan_extract.NextTime)
-		//TODO: 问题点
+		logs.Info("执行完成,更新下次执行时间的值 ,下次执行时间=", mini_plan_extract.NextTime)
 
 		if err := j.InsertAgain(&mini_plan_extract); err != nil {
 			logs.Error(err)
@@ -77,7 +81,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		}
 
 	} else {
-		logs.Debug("最小堆顶元素 item=", mini_plan.Job.Name, " 未过期")
+		logs.Info("未过期或者没设置tryStartJob参数")
 	}
 
 	return mini_plan.NextTime.Sub(now), nil //返回最小的时间,用于睡眠或定时
@@ -141,7 +145,7 @@ func (mh *JobPlanMinHeap)InsertAgain(item *common.JobSchedulePlan) error  {
 			mh.shiftDown(j)
 			return nil
 		}else{
-			logs.Error("indexes不存在 mh.indexes=",mh.indexes," ,index=",index," ,j=",j," , count=",count)
+			logs.Debug("indexes不存在 mh.indexes=",mh.indexes," ,index=",index," ,j=",j," , count=",count)
 		}
 	}
 	return nil

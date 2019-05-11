@@ -112,7 +112,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
-	SIZE := 5
+	SIZE := 60
 	j := NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
@@ -132,7 +132,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 			startTime := time.Now()
 			err = j.Insert(jj)
 			elapsed := time.Since(startTime)
-			logs.Info("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
+			logs.Debug("插入一条数据,并排序:",one_job.Name," took :",  elapsed)
 			if err != nil {
 				t.Error(err.Error())
 			}
@@ -176,7 +176,7 @@ func TestExtractEarliestHeap(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(600*1 * time.Second)
+	time.Sleep(60*2 * time.Second)
 	//<- ending
 	t.Log("run over...")
 

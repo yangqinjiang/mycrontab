@@ -47,7 +47,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 	if nil == mini_plan.Job {
 		return 0, nil
 	}
-	logs.Info("ExtractEarliest min item=",mini_plan.Job.Name, j.indexes)
+	logs.Info("ExtractEarliest min item=",mini_plan.Job.Name)
 	//判断是否快过期
 	isExpire := mini_plan.NextTime.Before(now) || mini_plan.NextTime.Equal(now)
 	elapsed := time.Since(now)

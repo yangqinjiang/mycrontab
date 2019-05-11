@@ -146,11 +146,11 @@ func TestExtractEarliestHeap(t *testing.T) {
 	}
 
 	go func() {
-		//scheduleTimer := time.NewTimer(1*time.Second)
+		scheduleTimer := time.NewTimer(1*time.Second)
 		for {
-			//select {
-			//	case <-scheduleTimer.C: //最近的任务到期了
-			//}
+			select {
+				case <-scheduleTimer.C: //最近的任务到期了
+			}
 			logs.Info("")
 			logs.Debug("for...",os.Getpid())
 			miniTime, err1 := j.ExtractEarliest(func(jobPlan *common.JobSchedulePlan) (err error) {
@@ -164,12 +164,14 @@ func TestExtractEarliestHeap(t *testing.T) {
 
 			logs.Info("sleep ", miniTime.Seconds(), "s","...end")
 
-			//scheduleTimer.Reset(100*time.Millisecond)
+			scheduleTimer.Reset(miniTime)
+			/*
 			if miniTime.Seconds() <= 0{
 				time.Sleep(100*time.Millisecond)
 			}else{
 				time.Sleep(miniTime)
 			}
+			*/
 
 
 

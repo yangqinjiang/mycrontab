@@ -59,6 +59,7 @@ func main() {
 		goto ERR
 	}
 	logs.Info("init JobLogMemoryBuffer")
+
 	//启动异步任务执行器
 	err = worker.InitGoroutineExecutor()
 	if err != nil {
@@ -67,11 +68,11 @@ func main() {
 	logs.Info("init Goroutine Executor")
 	//------------------任务管理器-----------------------------
 	//启动  任务管理器 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
-	err = worker.InitJobMgr()
+	err = worker.InitEtcdJobMgr()
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("init JobMgr success")
+	logs.Info("init EtcdJobMgr success")
 
 	//启动任务调度器
 	err,_ = worker.InitScheduler(nil)
@@ -81,7 +82,7 @@ func main() {
 
 	//设置 推送任务事件 的操作者
 	jobEventPusher = &worker.CustomJobEventReceiver{JobEventReceiver: worker.G_scheduler}
-	worker.G_jobMgr.SetJobEventPusher(jobEventPusher)
+	worker.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
 	//设置任务执行结果的接收器
 	worker.G_GoroutineExecutor.SetJobResultReceiver(worker.G_scheduler)
 	//----------------------任务调度器--------------------------

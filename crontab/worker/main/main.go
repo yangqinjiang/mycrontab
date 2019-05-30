@@ -13,7 +13,7 @@ import (
 var (
 	confFile string //配置文件的路径
 )
-
+//TODO: 创建命令doctor,用于检查运行环境,例如连接etcd, 连接mongodb,等等
 //解析命令行参数
 //TODO:在 goland IDE里启动,需要替换working directory
 ///src/github.com/yangqinjiang/mycrontab/crontab/worker/main

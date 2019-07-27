@@ -1,0 +1,14 @@
+version: '3'
+services:
+  master:
+    build: ./crontab/master/main # 编译 dockerfile文件
+    ports:
+      - "8080:8080"
+  worker-1:
+    build: ./crontab/worker/main # 编译 dockerfile文件
+  worker-2:
+    build: ./crontab/worker/main # 编译 dockerfile文件
+  etcd:
+    image: "bitnami/etcd" #etcd
+  mongodb:
+    image: "mongo"  #mongoDb

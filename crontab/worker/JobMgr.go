@@ -8,8 +8,10 @@ import (
 	"sync"
 	"time"
 )
-
-type JobMgr struct {
+/**
+	etcd任务管理器, 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
+ */
+type EtcdJobMgr struct {
 	client           *clientv3.Client
 	kv               clientv3.KV
 	lease            clientv3.Lease
@@ -19,16 +21,16 @@ type JobMgr struct {
 
 var (
 	//单例
-	G_jobMgr   *JobMgr
-	onceJobMgr sync.Once
+	G_EtcdJobMgr *EtcdJobMgr
+	onceJobMgr   sync.Once
 )
 
-func (jobMgr *JobMgr) SetJobEventPusher(jobEventPusher *CustomJobEventReceiver) {
+func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *CustomJobEventReceiver) {
 	jobMgr.jobEventPusher = jobEventPusher
 }
 
 //初始化管理器
-func InitJobMgr() (err error) {
+func InitEtcdJobMgr() (err error) {
 	onceJobMgr.Do(func() {
 
 		//初始化配置
@@ -48,7 +50,7 @@ func InitJobMgr() (err error) {
 		lease := clientv3.NewLease(client)
 		watcher := clientv3.NewWatcher(client)
 		//赋值单例
-		G_jobMgr = &JobMgr{
+		G_EtcdJobMgr = &EtcdJobMgr{
 			client:  client,
 			kv:      kv,
 			lease:   lease,
@@ -56,16 +58,21 @@ func InitJobMgr() (err error) {
 		}
 
 		//启动监听任务
-		G_jobMgr.watchJobs()
+		G_EtcdJobMgr.watchJobs()
 
 		//启动监听killer
-		G_jobMgr.watchKiller()
+		G_EtcdJobMgr.watchKiller()
 	})
 	return
 }
-
+//创建任务执行锁
+func (jobMgr *EtcdJobMgr) CreateJobLock(jobName string) (jobLock JobLocker) {
+	//返回 一把锁
+	jobLock = InitJobLock(jobName, jobMgr.kv, jobMgr.lease)
+	return
+}
 //监听任务的变化
-func (jobMgr *JobMgr) watchJobs() (err error) {
+func (jobMgr *EtcdJobMgr) watchJobs() (err error) {
 
 	var (
 		getResp            *clientv3.GetResponse
@@ -112,17 +119,12 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
 	return
 }
 
-//创建任务执行锁
-func (jobMgr *JobMgr) CreateJobLock(jobName string) (jobLock *JobLock) {
-	//返回 一把锁
-	jobLock = InitJobLock(jobName, jobMgr.kv, jobMgr.lease)
-	return
-}
+
 
 
 
 //监听强杀任务通知
-func (jobMgr *JobMgr) watchKiller() (err error) {
+func (jobMgr *EtcdJobMgr) watchKiller() (err error) {
 
 	var (
 		watchChan  clientv3.WatchChan

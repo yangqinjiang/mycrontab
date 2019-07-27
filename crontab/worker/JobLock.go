@@ -5,9 +5,10 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"github.com/coreos/etcd/clientv3"
 )
-//TODO:将JobLock抽象接口
+//将JobLock抽象接口
 //分布式锁(TXN事务)
 type JobLock struct {
+	JobLoger
 	Kv         clientv3.KV
 	Lease      clientv3.Lease
 	JobName    string             //任务名
@@ -17,7 +18,7 @@ type JobLock struct {
 }
 
 //初始化一把锁
-func InitJobLock(jobName string, kv clientv3.KV, lease clientv3.Lease) (jobLock *JobLock) {
+func InitJobLock(jobName string, kv clientv3.KV, lease clientv3.Lease) (jobLock JobLocker) {
 	jobLock = &JobLock{
 		Kv:      kv,
 		Lease:   lease,

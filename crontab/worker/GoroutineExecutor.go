@@ -11,6 +11,7 @@ import (
 //Goroutine任务执行器,也是命令的调用者
 type GoroutineExecutor struct {
 	JobExecuter								// 实现任务执行的接口
+	jobLock JobLocker						//任务锁锁对象
 	jobResultReceiver JobResultReceiver   //任务执行结果的接收器
 	command Command
 }
@@ -37,7 +38,6 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 			output  []byte
 			err     error
 			result  *common.JobExecuteResult
-			jobLock *JobLock
 		)
 		//任务执行的结果
 		result = &common.JobExecuteResult{
@@ -47,14 +47,14 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 		}
 
 		//初始化分布式锁
-		jobLock = G_jobMgr.CreateJobLock(info.Job.Name)
+		executor.jobLock = G_EtcdJobMgr.CreateJobLock(info.Job.Name)
 		//随机睡眠(0~1s),解决抢锁频繁问题
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
 		//尝试抢锁
-		err = jobLock.TryLock()
+		err = executor.jobLock.TryLock()
 		//释放锁
-		defer jobLock.Unlock()
+		defer executor.jobLock.Unlock()
 		if err != nil {
 			//抢锁失败,则返回
 			result.Err = err
@@ -71,9 +71,6 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 			}else{
 				output, err = []byte{}, errors.New("不存在此类命令")
 			}
-
-
-
 			//记录结束时间
 			result.EndTime = time.Now()
 			result.Output = output

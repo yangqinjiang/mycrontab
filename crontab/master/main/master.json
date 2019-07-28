@@ -18,7 +18,7 @@
   "webroot":"./webroot",
 
   "mongodb地址":"采用mongodb URI",
-  "mongodbUri":"mongodb://106.12.37.124:27017",
+  "mongodbUri":"mongodb://127.0.0.1:27017",
   "mongodbConnectTimeout":5000,
   "mongodbUsername":"root",
   "mongodbPassword":"123456"

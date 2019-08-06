@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 )
 
 //任务的HTTP接口

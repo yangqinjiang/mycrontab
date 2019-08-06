@@ -3,27 +3,35 @@
 # BUILD 阶段
 #
 FROM golang:1.12.7 AS build
-# 设置我们应用程序的工作目录
-WORKDIR /go/src/app
-# 添加所有编译的应用代码
-COPY . .
-#下载代码
-RUN go get -d -v ./...
-RUN go install -v ./...
+ENV GOPROXY https://goproxy.io
+ENV GO111MODULE on
+
+WORKDIR /go/cache
+# 下载mod
+ADD go.mod .
+ADD go.sum .
+RUN go mod download
+
+WORKDIR /go/release
+
+ADD . .
 # 编译一个静态的go应用 (在二进制构建中包含c语言依赖库)
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo .
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o master main.go
 
-#设置我们应用程序的启动命令
-
-CMD ["app"]
 #
 # 生产阶段
 #
 FROM scratch AS prod
 
 # 从build阶段拷贝二进制文件
-COPY --from=build /go/src/app .
-CMD ["./app"]
+COPY --from=build /go/release/master /
+# master的配置文件
+COPY --from=build /go/release/master.json /
+CMD ["./master"]
+
+
+
+
 # 运行
 #$ docker build -t my-golang-app .
 #$ docker images|grep my-golang-app                       

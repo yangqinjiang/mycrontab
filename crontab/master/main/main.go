@@ -5,7 +5,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/crontab/master"
 	"runtime"
 	"time"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 )
 
 var (

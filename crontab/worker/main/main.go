@@ -82,6 +82,9 @@ func main() {
 
 	//设置 推送任务事件 的操作者
 	jobEventPusher = &worker.CustomJobEventReceiver{JobEventReceiver: worker.G_scheduler}
+	if nil == jobEventPusher || nil == worker.G_EtcdJobMgr{
+		goto ERR
+	}
 	worker.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
 	//设置任务执行结果的接收器
 	worker.G_GoroutineExecutor.SetJobResultReceiver(worker.G_scheduler)

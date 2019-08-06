@@ -21,5 +21,6 @@ replace golang.org/x/mod => github.com/golang/mod v0.1.0
 require (
 	github.com/astaxie/beego v1.12.0
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
+	github.com/sirupsen/logrus v1.4.1
 	github.com/yangqinjiang/mycrontab v0.0.0-20190806045921-c9e9e6b7d3d7
 )

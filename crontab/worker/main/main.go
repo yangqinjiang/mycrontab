@@ -1,8 +1,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"github.com/yangqinjiang/mycrontab/crontab/worker"
 	"runtime"
@@ -26,7 +27,7 @@ func InitEnv() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 func main() {
-	logs.Info("crontab worker running...")
+	logs.Info("Crontab Worker Running...")
 	var (
 		err error
 		testWriter *worker.ConsoleLog
@@ -43,7 +44,7 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("read config")
+	logs.Info("加载配置")
 	//-----------------------日志记录器的实现------------------------
 	//TODO:暂时不使用 MongoDB
 	//err = worker.InitMongoDbLog()
@@ -82,7 +83,12 @@ func main() {
 
 	//设置 推送任务事件 的操作者
 	jobEventPusher = &worker.CustomJobEventReceiver{JobEventReceiver: worker.G_scheduler}
-	if nil == jobEventPusher || nil == worker.G_EtcdJobMgr{
+	if nil == jobEventPusher {
+		err = errors.New("jobEventPusher nil pointer")
+		goto ERR
+	}
+	if nil == worker.G_EtcdJobMgr{
+		err = errors.New("G_EtcdJobMgr nil pointer")
 		goto ERR
 	}
 	worker.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)

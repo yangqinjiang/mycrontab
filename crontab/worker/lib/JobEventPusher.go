@@ -3,7 +3,7 @@ package lib
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 )
 
 type CustomJobEventReceiver struct {

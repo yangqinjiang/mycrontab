@@ -1,8 +1,8 @@
-package master
+package lib
 
 import (
 	"context"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/yangqinjiang/mycrontab/master/common"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"sync"

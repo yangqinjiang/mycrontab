@@ -1,11 +1,11 @@
-package master
+package lib
 
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/yangqinjiang/mycrontab/master/common"
 	"sync"
 	"time"
 )

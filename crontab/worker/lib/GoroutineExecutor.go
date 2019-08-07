@@ -1,7 +1,8 @@
 package lib
 
 import (
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"math/rand"
 	"sync"
 	"time"

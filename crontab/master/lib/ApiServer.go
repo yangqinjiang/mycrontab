@@ -1,8 +1,8 @@
-package master
+package lib
 
 import (
 	"encoding/json"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/yangqinjiang/mycrontab/master/common"
 	"net"
 	"net/http"
 	"strconv"

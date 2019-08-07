@@ -1,4 +1,4 @@
-module Master
+module github.com/yangqinjiang/mycrontab/master
 
 go 1.12
 
@@ -19,6 +19,10 @@ replace honnef.co/go/tools => github.com/dominikh/go-tools v0.0.1-2019.2.2
 replace golang.org/x/mod => github.com/golang/mod v0.1.0
 
 require (
+	github.com/astaxie/beego v1.11.1
+	github.com/coreos/etcd v3.3.12+incompatible
+	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/sirupsen/logrus v1.4.2
 	github.com/yangqinjiang/mycrontab v0.0.0-20190729150508-4d25dcd8b3e1
+	go.mongodb.org/mongo-driver v1.0.1
 )

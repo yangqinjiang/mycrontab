@@ -2,7 +2,7 @@ package lib
 
 import (
 	"context"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"github.com/coreos/etcd/clientv3"
 	"net"
 	"sync"

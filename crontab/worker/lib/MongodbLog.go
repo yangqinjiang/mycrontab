@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 )
 
 //mongodb的日志模型

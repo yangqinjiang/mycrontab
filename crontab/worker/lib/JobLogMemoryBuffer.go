@@ -3,7 +3,7 @@ package lib
 import (
 	"errors"
 	logs "github.com/sirupsen/logrus"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"
 )

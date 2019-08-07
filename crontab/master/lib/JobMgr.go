@@ -1,10 +1,10 @@
-package master
+package lib
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"github.com/yangqinjiang/mycrontab/master/common"
 	"github.com/coreos/etcd/clientv3"
 	"sync"
 	"time"

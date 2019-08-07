@@ -3,7 +3,7 @@ package lib
 import (
 	"errors"
 	"github.com/astaxie/beego/logs"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"
 )

@@ -5,7 +5,7 @@ import (
 	"context"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"
 )

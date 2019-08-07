@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/yangqinjiang/mycrontab/crontab/master"
+	"github.com/yangqinjiang/mycrontab/master/lib"
 	"runtime"
 	"time"
 	logs "github.com/sirupsen/logrus"
@@ -37,26 +37,26 @@ func main() {
 	InitEnv()
 
 	//加载配置
-	err = master.InitConfig(confFile)
+	err = lib.InitConfig(confFile)
 	if err != nil {
 		goto ERR
 	}
 	logs.Info("读取配置文件")
 
 	//启动任务管理器
-	err = master.InitJobMgr()
+	err = lib.InitJobMgr()
 	if err != nil {
 		goto ERR
 	}
 	logs.Info("启动任务管理器")
 	//启动日志管理器
-	err = master.InitLogMgr()
+	err = lib.InitLogMgr()
 	if err != nil {
 		goto ERR
 	}
 	logs.Info("启动日志管理器")
 	//启动服务发现
-	err = master.InitWorkerMgr()
+	err = lib.InitWorkerMgr()
 	if err != nil {
 		goto ERR
 	}
@@ -64,7 +64,7 @@ func main() {
 
 
 	//启动Api Http服务
-	err = master.InitApiServer()
+	err = lib.InitApiServer()
 	if err != nil {
 		goto ERR //启动出错,直接跳出
 	}

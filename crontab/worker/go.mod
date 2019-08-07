@@ -1,4 +1,4 @@
-module Worker
+module github.com/yangqinjiang/mycrontab/worker
 
 go 1.12
 

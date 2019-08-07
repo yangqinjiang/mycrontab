@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"
 )
 

@@ -1,8 +1,9 @@
-package master
+package lib
 
 import (
 	"encoding/json"
 	"io/ioutil"
+	logs "github.com/sirupsen/logrus"
 )
 
 //程序配置
@@ -30,7 +31,7 @@ var (
 )
 
 func InitConfig(filename string) (err error) {
-
+	logs.Info("InitConfig 读取配置文件")
 	//1,读取配置文件
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {

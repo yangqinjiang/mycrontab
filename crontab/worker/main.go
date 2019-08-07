@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"strconv"
 	"time"
-	"Worker/lib"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 )
 
 var (

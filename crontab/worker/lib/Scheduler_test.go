@@ -3,7 +3,7 @@ package lib
 import (
 	"github.com/astaxie/beego/logs"
 	"testing"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"
 	"errors"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/pkg/errors"
-	"Worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"
 )
 

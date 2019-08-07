@@ -1,7 +1,7 @@
-package worker
+package lib
 
 import (
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"../../common"
 	"strconv"
 	"testing"
 	"time"

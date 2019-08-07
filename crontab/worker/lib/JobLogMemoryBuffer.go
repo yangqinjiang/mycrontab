@@ -1,8 +1,8 @@
-package worker
+package lib
 
 import (
 	"errors"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/crontab/common"
 	"sync"
 	"time"
@@ -37,8 +37,8 @@ func InitJobLogMemoryBuffer(jobLoger JobLoger) (err error) {
 
 		//批处理容量必须大于 0
 		if G_config.JobLogBatchSize > 0 {
-			logs.Info("启动一个日志处理协程")
-			//启动一个日志处理协程
+			logs.Info("启动一个日志处理协程...")
+			//处理协程
 			go G_jobLogMemoryBuffer.writeLoop()
 		}
 

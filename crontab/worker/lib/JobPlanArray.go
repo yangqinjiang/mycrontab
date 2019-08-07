@@ -1,8 +1,8 @@
-package worker
+package lib
 
 import (
 	"github.com/astaxie/beego/logs"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 	"time"
 )
 

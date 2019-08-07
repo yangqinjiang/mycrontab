@@ -1,8 +1,8 @@
-package worker
+package lib
 
 import (
 	"fmt"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 )
 //打印日志到控制台
 type ConsoleLog struct {

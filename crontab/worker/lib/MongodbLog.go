@@ -1,4 +1,4 @@
-package worker
+package lib
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 )
 
 //mongodb的日志模型

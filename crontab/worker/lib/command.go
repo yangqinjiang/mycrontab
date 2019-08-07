@@ -1,8 +1,8 @@
-package worker
+package lib
 
 import (
 	"fmt"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 	"github.com/astaxie/beego/logs"
 	"os/exec"
 	"runtime"

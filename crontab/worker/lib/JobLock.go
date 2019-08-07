@@ -1,8 +1,8 @@
-package worker
+package lib
 
 import (
 	"context"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 	"github.com/coreos/etcd/clientv3"
 )
 //将JobLock抽象接口

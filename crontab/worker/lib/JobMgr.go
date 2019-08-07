@@ -1,10 +1,11 @@
-package worker
+package lib
 
 import (
+	logs "github.com/sirupsen/logrus"
 	"context"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 	"sync"
 	"time"
 )
@@ -31,8 +32,10 @@ func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *CustomJobEventReceiv
 
 //初始化管理器
 func InitEtcdJobMgr() (err error) {
+	logs.Info("Before onceJobMgr")
 	onceJobMgr.Do(func() {
 
+		logs.Info(G_config.Endpoints)
 		//初始化配置
 		//读取配置文件
 		config := clientv3.Config{

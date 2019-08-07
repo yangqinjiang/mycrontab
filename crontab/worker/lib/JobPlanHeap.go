@@ -1,10 +1,10 @@
-package worker
+package lib
 
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/pkg/errors"
-	"github.com/yangqinjiang/mycrontab/crontab/common"
+	"Worker/common"
 	"time"
 )
 

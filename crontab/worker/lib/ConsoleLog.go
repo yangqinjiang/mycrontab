@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 )
 //打印日志到控制台

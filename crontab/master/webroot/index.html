@@ -11,6 +11,7 @@
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
+<div id="alert_box"></div>
 <div class="container-fluid">
     <!-- 页头 -->
     <div class="row">
@@ -303,6 +304,7 @@
                 dataType: 'json',
                 success: function(resp) {
                     if (resp.errno != 0) {  // 服务端出错了
+                        mytip(resp.msg)
                         return
                     }
                     // 任务数组
@@ -327,7 +329,18 @@
                 }
             })
         }
-        rebuildJobList()
+        rebuildJobList();
+
+        function mytip(content){
+            var html = '<div id="alert" class="alert alert-danger alert-dismissible fade in" role="alert">'
+                html += '<h4>Oh  ! 发生了一个错误!</h4>';
+                html += '<p>'+content+'</p></div>'
+            $('#alert_box').append(html);
+            setTimeout(function(){
+                $('#alert').alert('close');
+            },3000)
+        }
+        
     })
 </script>
 

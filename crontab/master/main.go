@@ -16,7 +16,7 @@ var (
 //TODO:在 goland IDE里启动,需要替换working directory
 ///src/github.com/yangqinjiang/mycrontab/crontab/master/main
 func initArgs() {
-	flag.StringVar(&confFile, "config", "./master.json", "指定master.json")
+	flag.StringVar(&confFile, "config", "./config/master.json", "指定master.json")
 	flag.Parse()
 }
 func InitEnv() {

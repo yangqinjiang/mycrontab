@@ -35,7 +35,7 @@ func InitEtcdJobMgr() (err error) {
 	logs.Info("Before onceJobMgr")
 	onceJobMgr.Do(func() {
 
-		logs.Info(G_config.Endpoints)
+		logs.Info("EtcdEndpoints = ",G_config.EtcdEndpoints)
 		//初始化配置
 		//读取配置文件
 		config := clientv3.Config{

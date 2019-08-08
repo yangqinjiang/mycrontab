@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"github.com/astaxie/beego/logs"
 	"os/exec"

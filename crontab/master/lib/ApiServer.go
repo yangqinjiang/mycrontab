@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"errors"
 	logs "github.com/sirupsen/logrus"
 )
 
@@ -108,6 +109,10 @@ func handleJobList(resp http.ResponseWriter, req *http.Request) {
 		err     error
 		bytes   []byte
 	)
+	if G_jobMgr == nil {
+		err = errors.New("G_jobMgr is nil")
+		goto ERR
+	}
 	jobList, err = G_jobMgr.ListJobs()
 	if err != nil {
 		goto ERR
@@ -267,7 +272,7 @@ func InitApiServer() (err error) {
 		}
 
 		//创建一个HTTP服务
-		logs.Info("创建一个HTTP服务")
+		logs.Info("创建一个HTTP服务,listen tcp:"+strconv.Itoa(G_config.ApiPort))
 
 		httpServer := &http.Server{
 			ReadTimeout:  time.Duration(G_config.ApiReadTimeout) * time.Second, //超时

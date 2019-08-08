@@ -120,6 +120,7 @@ func (jobMgr *JobMgr) ListJobs() (jobList []*common.Job, err error) {
 	var (
 		dirkey string
 	)
+
 	//初始化数组空间
 	jobList = make([]*common.Job, 0) //不会返回nil
 	dirkey = common.JOB_SAVE_DIR

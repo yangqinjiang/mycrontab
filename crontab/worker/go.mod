@@ -21,6 +21,8 @@ replace golang.org/x/mod => github.com/golang/mod v0.1.0
 require (
 	github.com/astaxie/beego v1.12.0
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
+	github.com/pkg/errors v0.8.0
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/sirupsen/logrus v1.4.1
+	github.com/etcd-io/etcd/clientv3 release-3.4
 )

@@ -21,7 +21,9 @@ replace golang.org/x/mod => github.com/golang/mod v0.1.0
 require (
 	github.com/coreos/etcd v3.3.12+incompatible
 	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
+	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/pkg/errors v0.8.0
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect

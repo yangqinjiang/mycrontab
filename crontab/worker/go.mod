@@ -19,7 +19,6 @@ replace honnef.co/go/tools => github.com/dominikh/go-tools v0.0.1-2019.2.2
 replace golang.org/x/mod => github.com/golang/mod v0.1.0
 
 require (
-	github.com/astaxie/beego v1.12.0
 	github.com/coreos/etcd v3.3.12+incompatible
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect

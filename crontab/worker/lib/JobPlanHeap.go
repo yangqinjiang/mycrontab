@@ -2,7 +2,7 @@ package lib
 
 import (
 	"fmt"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"

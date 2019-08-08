@@ -2,7 +2,7 @@ package lib
 
 import (
 	"errors"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"

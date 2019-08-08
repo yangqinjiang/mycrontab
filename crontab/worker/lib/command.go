@@ -3,7 +3,7 @@ package lib
 import (
 	"fmt"
 	"github.com/yangqinjiang/mycrontab/worker/common"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"os/exec"
 	"runtime"
 	"strings"

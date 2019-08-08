@@ -6,7 +6,7 @@ import (
 	"github.com/gorhill/cronexpr"
 	"strings"
 	"time"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 )
 
 //定时任务

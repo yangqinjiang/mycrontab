@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"
 )

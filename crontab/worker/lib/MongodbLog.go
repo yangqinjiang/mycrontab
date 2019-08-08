@@ -2,7 +2,7 @@ package lib
 
 import (
 	"context"
-	"github.com/astaxie/beego/logs"
+	logs "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"sync"

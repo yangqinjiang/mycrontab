@@ -3,6 +3,7 @@
 # BUILD 阶段
 #
 FROM golang:1.12.7 AS build
+RUN echo "BUILD MASTER ..." 
 ENV GOPROXY https://goproxy.io
 ENV GO111MODULE on
 
@@ -26,7 +27,8 @@ FROM scratch AS prod
 # 从build阶段拷贝二进制文件
 COPY --from=build /go/release/master /
 # master的配置文件
-COPY --from=build /go/release/master.json /
+COPY --from=build /go/release/config/master.json /config/master.json
+EXPOSE 8080
 CMD ["./master"]
 
 

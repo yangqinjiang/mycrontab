@@ -25,7 +25,7 @@ func InitEnv() {
 }
 func main() {
 	
-	logs.Info("crontab master running...")
+	logs.Info("Crontab Master Running...")
 
 	var (
 		err error

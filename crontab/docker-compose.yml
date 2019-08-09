@@ -1,0 +1,51 @@
+version: '3'
+services:
+  master:
+    build: 
+      context: ./master # 编译 dockerfile文件
+      # args:
+      #   - buildno=master_v2
+      #   - gitcommithash=cdc3b19
+    depends_on:
+      - etcd
+      - mongodb
+    ports:
+      - "8080:8080"
+    networks:
+      - crontab_network
+  worker-1:
+    build: ./worker # 编译 dockerfile文件
+    depends_on:
+      - etcd
+      - mongodb
+    networks:
+      - crontab_network
+  worker-2:
+    build: ./worker # 编译 dockerfile文件
+    depends_on:
+      - etcd
+      - mongodb
+    networks:
+      - crontab_network
+  etcd:
+    image: "bitnami/etcd" #etcd
+    networks:
+      - crontab_network
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - 2379:2379
+      - 2380:2380
+  mongodb:
+    image: "mongo"  #mongoDb
+    restart: always
+    networks:
+      - crontab_network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+
+networks:
+  crontab_network:
+

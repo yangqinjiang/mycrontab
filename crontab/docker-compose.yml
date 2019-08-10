@@ -9,24 +9,23 @@ services:
     depends_on:
       - etcd
       - mongodb
-    ports:
+    ports: # 暴露端口信息  - "宿主机端口:容器暴露端口"
       - "8080:8080"
     networks:
       - crontab_network
-  worker-1:
-    build: ./worker # 编译 dockerfile文件
-    depends_on:
+    links:
       - etcd
       - mongodb
-    networks:
-      - crontab_network
-  worker-2:
-    build: ./worker # 编译 dockerfile文件
-    depends_on:
-      - etcd
-      - mongodb
-    networks:
-      - crontab_network
+  # worker:
+  #   build: ./worker # 编译 dockerfile文件
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 2   #两个worker副本
+  #   depends_on:
+  #     - etcd
+  #     - mongodb
+  #   networks:
+  #     - crontab_network
   etcd:
     image: "bitnami/etcd" #etcd
     networks:
@@ -34,12 +33,14 @@ services:
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-    ports:
-      - 2379:2379
-      - 2380:2380
+    expose:
+      - "2379"
+      - "2380"
   mongodb:
     image: "mongo"  #mongoDb
     restart: always
+    expose:
+      - "27017"
     networks:
       - crontab_network
     environment:

@@ -26,6 +26,8 @@ FROM scratch AS prod
 
 # 从build阶段拷贝二进制文件
 COPY --from=build /go/release/master /
+# master的web文件
+COPY --from=build /go/release/webroot /webroot/
 # master的配置文件
 COPY --from=build /go/release/config/master.json /config/master.json
 EXPOSE 8080

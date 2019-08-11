@@ -159,7 +159,7 @@
                 }
                 return num
             }
-            var date = new Date(millsecond)
+            var date = new Date(millsecond/1000000)
             var year = date.getFullYear()
             var month = paddingNum(date.getMonth() + 1, 2)
             var day = paddingNum(date.getDate(), 2)

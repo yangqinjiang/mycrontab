@@ -63,7 +63,7 @@ func (this *JobExecuteResult)ParseJobLog() (*JobLog) {
 }
 
 func (j *JobExecuteInfo)PrintStatus()  {
-	logs.Info("正式执行任务:", j.Job.Name, " P=", j.PlanTime, " R=", j.RealTime)
+	logs.Warn("正式执行任务:", j.Job.Name, " P=", j.PlanTime, " R=", j.RealTime)
 }
 
 type Response struct {

@@ -5,9 +5,9 @@ import (
 	logs "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
 	"sync"
 	"time"
-
 	"github.com/yangqinjiang/mycrontab/worker/common"
 )
 
@@ -20,21 +20,50 @@ type MongoDbLog struct {
 
 //MongoDbLog批量写入日志
 func (mongodb *MongoDbLog) Write(jobLog *common.LogBatch) (n int, err error) {
-	logs.Info("MongoDbLog批量写入日志" )
-	doc := make([]interface{}, len(jobLog.Logs))
-	for key,value := range jobLog.Logs {
-		doc[key] = value
-	}
+	logs.Info("MongoDbLog批量写入日志,len=",len(jobLog.Logs) )
+	// doc := make([]interface{}, len(jobLog.Logs))
+	// for key,value := range jobLog.Logs {
+	// 	if nil != value{
+	// 		logs.Info(value)
+	// 		doc[key] = value
+	// 	}else{
+	// 		logs.Info("nil .....")
+	// 	}
+		
+	// }
 
-	logs.Debug("写入日志到mongoDb,日志数量len=",len(doc))
-	_, err = mongodb.logCollection.InsertMany(context.TODO(),doc)
+	//TODO: 测试的数据,还没有完善 jobLog=> docs的转换功能
+	docs := []interface{}{
+		bson.D{
+			{"jobName","hello-1"},
+			{"command","world"},
+			{"err","err string 测试的数据"},
+			{"output","output string"},
+			{"planTime",time.Now().UnixNano()},
+			{"scheduleTime",time.Now().UnixNano()},
+			{"startTime",time.Now().UnixNano()},
+			{"endTime",time.Now().UnixNano()},
+		},
+		bson.D{
+			{"jobName","hello-2"},
+			{"command","world"},
+			{"err","err string 测试的数据"},
+			{"output","output string"},
+			{"planTime",time.Now().UnixNano()},
+			{"scheduleTime",time.Now().UnixNano()},
+			{"startTime",time.Now().UnixNano()},
+			{"endTime",time.Now().UnixNano()},
+		},
+	}
+	logs.Info("写入日志到mongoDb,docs数量=",len(docs))
+	_, err = mongodb.logCollection.InsertMany(context.TODO(),docs)
 
 	if err != nil {
 		logs.Error("日志写入到mongoDb,失败", err)
 		return  0,err
 	}
 	logs.Debug("日志写入到mongoDb, 成功")
-	return len(doc),nil
+	return len(docs),nil
 }
 
 var (

@@ -12,6 +12,7 @@ type CustomJobEventReceiver struct {
 
 //推送保存任务的事件到Scheduler
 func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, value []byte) {
+	logs.Info("推送保存任务的事件到Scheduler,jobKey=",jobKey)
 	var job *common.Job
 	var err error
 	if job, err = common.UnpackJob(value); err != nil {
@@ -20,7 +21,7 @@ func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, valu
 	//反序列化成功
 	jobName := common.ExtractJobName(jobKey)
 	//构建一个更新event事件
-	fmt.Println("推送保存任务的事件到Scheduler", jobName)
+	logs.Warn("推送保存任务的事件到Scheduler", jobName)
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 	//推送给scheduler
 	this.PushToScheduler(jobEvent)

@@ -93,7 +93,7 @@ func (r *CmdReceiver) action(info *common.JobExecuteInfo) ([]byte, error) {
 		return nil,nil
 	}
 
-	logs.Info("针对CmdReceiver->action，如何处理该命令,info=",info)
+	logs.Info("针对CmdReceiver->action，如何处理该命令,info=",info.Job.Name)
 
 	if nil == info{
 		return nil,nil

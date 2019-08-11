@@ -5,10 +5,10 @@ import (
 	"flag"
 	logs "github.com/sirupsen/logrus"
 	"runtime"
-	"strconv"
+	// "strconv"
 	"time"
 	"github.com/yangqinjiang/mycrontab/worker/lib"
-	"github.com/yangqinjiang/mycrontab/worker/common"
+	// "github.com/yangqinjiang/mycrontab/worker/common"
 )
 
 var (
@@ -123,16 +123,16 @@ func main() {
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
-		//构建跟时间有关的key,Name
-		rand := strconv.FormatInt(time.Now().Unix(),10)
-		//模拟事件
+		// //构建跟时间有关的key,Name
+		// rand := strconv.FormatInt(time.Now().Unix(),10)
+		// //模拟事件
 
-		job := &common.Job{Name: "JobName"+rand,CronExpr:"* * * * * *",Command:"echo 1;",ShellName:"sh"}
-		b ,err := common.PackJob(job)
-		if err != nil{
-			logs.Error("序列化job 出错")
-		}
-		jobEventPusher.PushSaveEventToScheduler("JobKey"+rand,b);
+		// job := &common.Job{Name: "JobName"+rand,CronExpr:"* * * * * *",Command:"echo 1;",ShellName:"sh"}
+		// b ,err := common.PackJob(job)
+		// if err != nil{
+		// 	logs.Error("序列化job 出错")
+		// }
+		// jobEventPusher.PushSaveEventToScheduler("JobKey"+rand,b);
 	}
 	return
 

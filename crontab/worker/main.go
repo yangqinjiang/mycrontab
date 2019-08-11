@@ -30,7 +30,7 @@ func main() {
 	logs.Info("Crontab Worker Running...")
 	var (
 		err error
-		testWriter *lib.ConsoleLog
+		//testWriter *lib.ConsoleLog
 		jobEventPusher *lib.CustomJobEventReceiver
 	)
 	//初始化命令行参数
@@ -46,16 +46,18 @@ func main() {
 	}
 	logs.Info("加载配置")
 	//-----------------------日志记录器的实现------------------------
-	//TODO:暂时不使用 MongoDB
-	//err = lib.InitMongoDbLog()
-	//if err != nil {
-	//	goto ERR
-	//}
-	//logs.Info("初始化mongodb的实例")
-	testWriter = &lib.ConsoleLog{}
-	logs.Info("init ConsoleLog")
+	//var testWriter *lib.ConsoleLog
+	// testWriter = &lib.ConsoleLog{}
+	// logs.Info("init ConsoleLog")
+	//err = lib.InitJobLogMemoryBuffer(testWriter)
 
-	err = lib.InitJobLogMemoryBuffer(testWriter)
+	//TODO:暂时不使用 MongoDB
+	err = lib.InitMongoDbLog()
+	if err != nil {
+		goto ERR
+	}
+	logs.Info("初始化mongodb的实例")
+	err = lib.InitJobLogMemoryBuffer(lib.G_MongoDbLog)
 	if err != nil {
 		goto ERR
 	}

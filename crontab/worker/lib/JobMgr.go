@@ -46,6 +46,7 @@ func InitEtcdJobMgr() (err error) {
 		client, err := clientv3.New(config)
 
 		if err != nil {
+			logs.Error("----InitEtcdJobMgr Err:----",err)
 			return
 		}
 		//得到Kv和Lease的API子集

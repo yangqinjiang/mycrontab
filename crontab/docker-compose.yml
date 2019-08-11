@@ -7,25 +7,26 @@ services:
       #   - buildno=master_v2
       #   - gitcommithash=cdc3b19
     depends_on:
-      - etcd
-      - mongodb
+      - "etcd"
+      - "mongodb"
     ports: # 暴露端口信息  - "宿主机端口:容器暴露端口"
       - "8080:8080"
     networks:
       - crontab_network
-    links:
-      - etcd
-      - mongodb
-  # worker:
-  #   build: ./worker # 编译 dockerfile文件
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 2   #两个worker副本
-  #   depends_on:
-  #     - etcd
-  #     - mongodb
-  #   networks:
-  #     - crontab_network
+    links: 
+      - "etcd"
+      - "mongodb"
+  worker:
+    build: 
+        context: ./worker # 编译 dockerfile文件
+    depends_on:
+      - "etcd"
+      - "mongodb"
+    links: 
+      - "etcd"
+      - "mongodb"
+    networks:
+      - crontab_network
   etcd:
     image: "bitnami/etcd" #etcd
     networks:
@@ -33,7 +34,7 @@ services:
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-    expose:
+    expose: #expose暴露容器给link到当前容器的容器，或者暴露给同一个networks的容器
       - "2379"
       - "2380"
   mongodb:

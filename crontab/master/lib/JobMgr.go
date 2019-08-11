@@ -8,6 +8,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"sync"
 	"time"
+	logs "github.com/sirupsen/logrus"
 )
 
 type JobMgr struct {
@@ -36,6 +37,7 @@ func InitJobMgr() (err error) {
 		client, err := clientv3.New(config)
 
 		if err != nil {
+			logs.Error("----InitJobMgr Err:---- ",err)
 			return
 		}
 		//得到Kv和Lease的API子集

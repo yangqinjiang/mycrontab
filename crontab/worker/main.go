@@ -26,6 +26,7 @@ func InitEnv() {
 	//线程数==CPU数量
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
+//初始化logs的配置
 func initLogs(env_production bool) {
 
 	// do something here to set environment depending on an environment variable
@@ -33,17 +34,16 @@ func initLogs(env_production bool) {
 	if env_production {
 		//日志打印 代码调用的路径 
 		logs.SetReportCaller(true)
-	  logs.SetFormatter(&logs.JSONFormatter{})
+		logs.SetFormatter(&logs.JSONFormatter{})
 	} else {
 	  // The TextFormatter is default, you don't actually have to do this.
-	  logs.SetFormatter(&logs.TextFormatter{})
+		logs.SetFormatter(&logs.TextFormatter{})
 	}
   }
 func main() {
-	logs.Info("Crontab Worker Running...")
+	logs.Info("Crontab Worker Starting...")
 	var (
 		err error
-		//testWriter *lib.ConsoleLog
 		jobEventPusher *lib.CustomJobEventReceiver
 	)
 	//初始化命令行参数
@@ -66,12 +66,18 @@ func main() {
 	// logs.Info("init ConsoleLog")
 	//err = lib.InitJobLogMemoryBuffer(testWriter)
 
-	//TODO:暂时不使用 MongoDB
+	//使用 MongoDB 储存任务产生的日志
 	err = lib.InitMongoDbLog()
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("初始化mongodb的实例")
+	if nil == lib.G_MongoDbLog{
+		err = errors.New("初始化mongodb的实例  数据库连接 [失败]")
+		goto ERR
+	}else{
+		logs.Info("初始化mongodb的实例,储存任务产生的日志 [完成]")
+	}
+	
 	err = lib.InitJobLogMemoryBuffer(lib.G_MongoDbLog)
 	if err != nil {
 		goto ERR
@@ -83,14 +89,19 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("init Goroutine Executor")
+	logs.Info("启动异步任务执行器 InitGoroutineExecutor")
 	//------------------任务管理器-----------------------------
 	//启动  任务管理器 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
 	err = lib.InitEtcdJobMgr()
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("init EtcdJobMgr success")
+	if nil == lib.G_EtcdJobMgr{
+		err = errors.New("Etcd 任务存储 数据库连接 [失败]")
+		goto ERR
+	}else{
+		logs.Info("Etcd 任务存储 数据库连接 [完成] ")
+	}
 
 	//启动任务调度器
 	err,_ = lib.InitScheduler(nil)
@@ -104,10 +115,7 @@ func main() {
 		err = errors.New("jobEventPusher nil pointer")
 		goto ERR
 	}
-	if nil == lib.G_EtcdJobMgr{
-		err = errors.New("G_EtcdJobMgr nil pointer")
-		goto ERR
-	}
+
 	lib.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
 	//设置任务执行结果的接收器
 	lib.G_GoroutineExecutor.SetJobResultReceiver(lib.G_scheduler)
@@ -124,7 +132,7 @@ func main() {
 	lib.G_scheduler.SetJobPlanManager(lib.NewJobPlanMinHeap(10000))
 	//启动任务调度器的 调度协程,监听任务变化事件,任务执行结果
 	lib.G_scheduler.Loop()
-	logs.Info("start scheduler loop")
+	logs.Info("启动任务调度器的 调度协程 [完成]")
 
 
 	//---------------------服务注册管理器------------------
@@ -133,8 +141,8 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	logs.Info("init Registr")
-	logs.Info("start worker ,DONE")
+	logs.Info("启动服务注册管理器 [完成]")
+	logs.Info("启动worker[完成]")
 	logs.Info("running....")
 	//正常退出
 	for {

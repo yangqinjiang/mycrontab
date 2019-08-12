@@ -69,7 +69,7 @@ func InitMongoDbLog() (err error) {
 					logs.Error("连接mongoDb失败")
 			return
 		}
-		logs.Debug("连接mongoDb成功")
+		logs.Info("连接mongoDb成功")
 
 		//选择db和collection
 		G_MongoDbLog = &MongoDbLog{

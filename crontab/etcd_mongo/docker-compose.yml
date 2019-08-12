@@ -1,0 +1,26 @@
+version: '3'
+services:
+  etcd:
+    image: "bitnami/etcd" #etcd
+    networks:
+      - etcd_mongodb_network
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports: # 暴露端口信息  - "宿主机端口:容器暴露端口"
+      - "2379:2379"
+      - "2380:2380"
+  mongodb:
+    image: "mongo"  #mongoDb
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - etcd_mongodb_network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+
+networks:
+  etcd_mongodb_network:
+

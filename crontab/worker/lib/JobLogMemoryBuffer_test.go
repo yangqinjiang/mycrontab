@@ -3,11 +3,12 @@ package lib
 import (
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"strconv"
 	"testing"
 	"time"
 )
-
+var config_file_path = "../config/worker.json"
 type TestWriter struct {
 }
 
@@ -25,16 +26,16 @@ func (w *TestWriter) Write(jobLog *common.LogBatch) (n int, err error) {
 
 func TestLogSinkOnlyPrint(t *testing.T) {
 
-	err := InitConfig("./main/worker.json")
+	err := lib.InitConfig(config_file_path)
 	if err != nil {
 		t.Fatal("Config error", err)
 	}
-	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
-	G_config.JobLogBatchSize = 10        //日志批次大小
+	lib.G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
+	lib.G_config.JobLogBatchSize = 10        //日志批次大小
 
 	w := &TestWriter{}
 
-	err = InitJobLogMemoryBuffer(w)
+	err = lib.InitJobLogMemoryBuffer(w)
 	if err != nil {
 		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
@@ -53,16 +54,16 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 		}
 		dd[i] = d
 	}
-	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
-	if G_config.JobLogBatchSize > 0{
-		time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
+	lib.G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
+	if lib.G_config.JobLogBatchSize > 0{
+		time.Sleep(time.Duration(lib.G_config.JobLogCommitTimeout+2000)*time.Millisecond)
 
 	}
 
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}
-	if G_config.JobLogBatchSize == 0 && G_jobLogMemoryBuffer.LogChanLength() != FOR_SIZE {
+	if lib.G_config.JobLogBatchSize == 0 && lib.G_jobLogMemoryBuffer.LogChanLength() != FOR_SIZE {
 		t.Fatal("ERROR, 写入内存的日志size不正确", err)
 	}
 	t.Log("OK")
@@ -70,21 +71,21 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 }
 func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 
-	err := InitConfig("./main/worker.json")
+	err := lib.InitConfig(config_file_path)
 	if err != nil {
 		t.Fatal("Config error", err)
 	}
-	G_config.JobLogCommitTimeout = 1 //日志自动提交超时
-	G_config.JobLogBatchSize = 100        //日志批次大小
+	lib.G_config.JobLogCommitTimeout = 1 //日志自动提交超时
+	lib.G_config.JobLogBatchSize = 100        //日志批次大小
 
 	w := &TestWriter{}
 
-	err = InitJobLogMemoryBuffer(w)
+	err = lib.InitJobLogMemoryBuffer(w)
 	if err != nil {
 		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogMemoryBuffer.JobLoger = w
+	lib.G_jobLogMemoryBuffer.JobLoger = w
 	//注意整除的影响
 	FOR_SIZE := 5
 
@@ -97,9 +98,9 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 		}
 		dd[i] = d
 	}
-	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
+	lib.G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
 
-	time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
+	time.Sleep(time.Duration(lib.G_config.JobLogCommitTimeout+2000)*time.Millisecond)
 
 	if err != nil {
 		t.Fatal("ERROR", err)
@@ -107,48 +108,48 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 
 }
 
-
+//测试mongodb的保存日志
 func TestLogSinkToMongoDb(t *testing.T) {
-	err := InitConfig("./main/worker.json")
+	err := lib.InitConfig(config_file_path)
 	if err != nil {
 		t.Fatal("Config error", err)
 	}
-	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
-	G_config.JobLogBatchSize = 100        //日志批次大小
+	lib.G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
+	lib.G_config.JobLogBatchSize = 100        //日志批次大小
 
 	//第一次实例化
-	err = InitMongoDbLog()
+	err = lib.InitMongoDbLog()
 	if err != nil {
 		t.Fatal("MongoDbLog error", err)
 	}
-	backG_MongoDbLog := G_MongoDbLog
+	backG_MongoDbLog := lib.G_MongoDbLog
 	//第二次实例化
-	err = InitMongoDbLog()
+	err = lib.InitMongoDbLog()
 	if err != nil {
 		t.Fatal("MongoDbLog error", err)
 	}
-	if backG_MongoDbLog != G_MongoDbLog{
+	if backG_MongoDbLog != lib.G_MongoDbLog{
 		t.Fatal("InitMongoDbLog error,单例模式错误")
 	}
 
-	err = InitJobLogMemoryBuffer(G_MongoDbLog)
+	err = lib.InitJobLogMemoryBuffer(lib.G_MongoDbLog)
 	if err != nil {
 		t.Fatal("InitJobLogMemoryBuffer ERROR", err)
 	}
 	//避免单例模式的影响
-	G_jobLogMemoryBuffer.JobLoger = G_MongoDbLog
+	lib.G_jobLogMemoryBuffer.JobLoger = lib.G_MongoDbLog
 	//注意整除的影响
 	FOR_SIZE := 10
 	dd := make([]*common.JobLog,FOR_SIZE)
 	for i := 0; i < FOR_SIZE; i++ {
 		d := &common.JobLog{
-			JobName: "JobName is" + strconv.Itoa(i),
-			Err:     "This is Error " + strconv.Itoa(i),
+			JobName: "JobName : " + strconv.Itoa(i),
+			Err:     "This is Error :" + strconv.Itoa(i),
 		}
 		dd[i] = d
 	}
-	G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
-	time.Sleep(time.Duration(G_config.JobLogCommitTimeout+2000)*time.Millisecond)
+	lib.G_jobLogMemoryBuffer.Write(&common.LogBatch{dd})
+	time.Sleep(time.Duration(lib.G_config.JobLogCommitTimeout+2000)*time.Millisecond)
 	if err != nil {
 		t.Fatal("ERROR", err)
 	}
@@ -157,14 +158,14 @@ func TestLogSinkToMongoDb(t *testing.T) {
 
 func TestLogSinkNoWriter(t *testing.T) {
 
-	err := InitConfig("./main/worker.json")
+	err := lib.InitConfig(config_file_path)
 	if err != nil {
 		t.Fatal("Config error", err)
 	}
-	G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
-	G_config.JobLogBatchSize = 10        //日志批次大小
+	lib.G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
+	lib.G_config.JobLogBatchSize = 10        //日志批次大小
 
-	err = InitJobLogMemoryBuffer(nil)
+	err = lib.InitJobLogMemoryBuffer(nil)
 	if err == nil{
 		t.Fatal("错误,必须传入common.Log的实现类")
 	}

@@ -41,24 +41,27 @@ func (this *JobExecuteResult)PrintSuccessLog()  {
 }
 //使用JobExecuteResult构建JobLog对象
 func (this *JobExecuteResult)ParseJobLog() (*JobLog) {
+	logs.Warn("准备构建 JobName: ",this.ExecuteInfo.Job.Name,"的 JobLog,Err=",this.Err)
 	//过滤无用 的日志
-	if this.Err != ERR_LOCK_ALREADY_REQUIRED {
+	if this.Err == ERR_LOCK_ALREADY_REQUIRED {
+		logs.Error("过滤无用 的日志")
 		return nil
 	}
 	jobLog := &JobLog{
 		JobName:      this.ExecuteInfo.Job.Name,
 		Command:      this.ExecuteInfo.Job.Command,
 		Output:       string(this.Output),
-		PlanTime:     this.ExecuteInfo.PlanTime.UnixNano() / 1000000,
-		ScheduleTime: this.ExecuteInfo.RealTime.UnixNano() / 1000000,
-		StartTime:    this.StartTime.UnixNano() / 1000000,
-		EndTime:      this.EndTime.UnixNano() / 1000000,
+		PlanTime:     this.ExecuteInfo.PlanTime.UnixNano(),
+		ScheduleTime: this.ExecuteInfo.RealTime.UnixNano(),
+		StartTime:    this.StartTime.UnixNano(),
+		EndTime:      this.EndTime.UnixNano(),
 	}
 	if this.Err != nil {
 		jobLog.Err = this.Err.Error()
 	} else {
 		jobLog.Err = ""
 	}
+	logs.Warn("构建JobLog成功~")
 	return  jobLog
 }
 
@@ -178,7 +181,8 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error
 	)
 	//解析JOB的crontab表达式
 	if expr, err = cronexpr.Parse(job.CronExpr); err != nil {
-		logs.Error("解析JOB的crontab表达式 出错")
+		logs.Error("解析JOB的crontab表达式 出错,Job=")
+		logs.Warn(job)
 		return
 	}
 	//生成任务调度计划对象

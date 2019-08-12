@@ -65,7 +65,7 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 			logs.Error("保存任务出错:", err.Error())
 		}
 	case common.JOB_EVENT_DELETE: //删除任务事件
-		logs.Info("删除任务:", jobEvent.Job.Name)
+		logs.Warn("删除任务:", jobEvent.Job)
 
 		scheduler.jobPlanManager.Remove(jobEvent.Job.Name,jobEvent.Job)
 	case common.JOB_EVENT_KILL: //强杀任务事件
@@ -192,10 +192,10 @@ func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult)(n i
 	//生成执行日志
 	jobLog = result.ParseJobLog()
 
-	if nil != scheduler.jobLogger{
-		//发送给日志记录器
-		dd := make([]*common.JobLog,1)
-		dd = append(dd, jobLog)
+	if nil != scheduler.jobLogger && nil != jobLog{
+		//发送给日志记录器 
+		dd := []*common.JobLog{jobLog}
+		logs.Warn("发送jobLog给日志记录器",&jobLog," ,jobLog[]=",&dd)
 		return scheduler.jobLogger.Write(&common.LogBatch{dd})
 	}else{
 		return 0, errors.New("没设置日志记录器")

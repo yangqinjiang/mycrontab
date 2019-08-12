@@ -54,7 +54,7 @@ func (logSink *JobLogMemoryBuffer) LogChanLength() int {
 
 //发送日志
 func (logSink *JobLogMemoryBuffer) Write(jobLog *common.LogBatch) (n int, err error) {
-	logs.Debug("Batch write jobLog to logChan, len=", len(jobLog.Logs))
+	logs.Info("Batch write jobLog to logChan, len=", len(jobLog.Logs))
 	for _, log := range jobLog.Logs {
 		select {
 		case logSink.logChan <- log: //未满

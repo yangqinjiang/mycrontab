@@ -9,13 +9,13 @@ ENV GO111MODULE on
 
 WORKDIR /go/cache
 # 下载mod
-ADD go.mod .
-ADD go.sum .
+COPY go.mod .
+COPY go.sum .
 RUN go mod download
 
 WORKDIR /go/release
 
-ADD . .
+COPY . .
 # 编译一个静态的go应用 (在二进制构建中包含c语言依赖库)
 RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o master main.go
 

@@ -35,9 +35,9 @@ type JobExecuteInfo struct {
 }
 
 func (this *JobExecuteResult)PrintSuccessLog()  {
-	logs.Info("任务执行完成:", this.ExecuteInfo.Job.Name, " Es=",
-		this.EndTime.Sub(this.StartTime),
-		string(this.Output), " Err=", this.Err)
+	logs.Info("任务执行完成,JobName= [ ", this.ExecuteInfo.Job.Name, " ], 耗时= [ ",
+		this.EndTime.Sub(this.StartTime)," ] ,输出 = [ ",
+		string(this.Output), " ], 执行错误输出= [ ", this.Err , " ]")
 }
 //使用JobExecuteResult构建JobLog对象
 func (this *JobExecuteResult)ParseJobLog() (*JobLog) {

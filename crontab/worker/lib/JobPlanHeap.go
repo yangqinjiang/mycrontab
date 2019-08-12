@@ -58,7 +58,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		//从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
 		elapsed = time.Since(now) //更新遍历时间
-		logs.Warn("取出最小堆顶元素,任务名称= [ ",mini_plan_extract.Job.Name," ] , CronExpr = [",mini_plan_extract.Job.CronExpr, " ],执行时间= [ ", mini_plan_extract.NextTime," ],并重新进行 shiftDown,耗时: ", elapsed)
+		logs.Warn("取出最小堆顶元素,任务名称= [ ",mini_plan_extract.Job.Name," ] Command=[",mini_plan_extract.Job.Command," ] ,ShellName=[",mini_plan_extract.Job.ShellName," ] , CronExpr = [",mini_plan_extract.Job.CronExpr, " ],执行时间= [ ", mini_plan_extract.NextTime," ],并重新进行 shiftDown,耗时: ", elapsed)
 		if mini_plan_extract.Del{
 			logs.Error("已标识为DEL,跳过,不执行任务")
 			return 0,nil

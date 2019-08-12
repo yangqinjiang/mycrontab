@@ -251,7 +251,7 @@
                         var log = logList[i]
                         var tr = $('<tr>')
                         tr.append($('<td>').html(log.command))
-                        tr.append($('<td>').html(log.err))
+                        tr.append($('<td style="color:red;">').html(log.err))
                         tr.append($('<td>').html(log.output))
                         tr.append($('<td>').html(timeFormat(log.planTime)))
                         tr.append($('<td>').html(timeFormat(log.scheduleTime)))

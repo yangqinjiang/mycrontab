@@ -101,7 +101,7 @@ func (r *CmdReceiver) action(info *common.JobExecuteInfo) ([]byte, error) {
 	//bash的shell命令
 	logs.Info("执行具体的shell命令",info.Job.Command);
 	//执行shell命令
-	cmd := exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
+	cmd := exec.CommandContext(info.CancelCtx, "/bin/sh", "-c", info.Job.Command)
 	//执行并捕获输出
 	return cmd.CombinedOutput()
 }

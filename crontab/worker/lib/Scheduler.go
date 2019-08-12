@@ -58,16 +58,18 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	switch jobEvent.EventType {
 	case common.JOB_EVENT_SAVE: //保存任务事件
 		if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
+			logs.Error("构建任务执行计划出错:", err.Error())
 			return
 		}
 		logs.Info("保存任务:", jobEvent.Job.Name)
-		if err := scheduler.jobPlanManager.Insert(jobSchedulePlan);err !=nil{
+		if err := scheduler.jobPlanManager.Insert(jobSchedulePlan);err != nil{
 			logs.Error("保存任务出错:", err.Error())
 		}
 	case common.JOB_EVENT_DELETE: //删除任务事件
 		logs.Warn("删除任务:", jobEvent.Job)
-
-		scheduler.jobPlanManager.Remove(jobEvent.Job.Name,jobEvent.Job)
+		if err := scheduler.jobPlanManager.Remove(jobEvent.Job.Name,jobEvent.Job);err != nil{
+			logs.Error("删除任务出错:", err.Error())
+		}
 	case common.JOB_EVENT_KILL: //强杀任务事件
 		//取消command的执行
 		if jobExecuteInfo, jobExecting = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExecting {

@@ -15,6 +15,9 @@
   "jobLogBatchSize":10,
 
   "日志自动提交超时":"在批次未达到阀值之前,超时会自动提交batch",
-  "jobLogCommitTimeout":10000
+  "jobLogCommitTimeout":10000,
+
+  "日志模块":"是否切换至生产模式",
+  "LogsProduction":false
 
 }

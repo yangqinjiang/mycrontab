@@ -194,7 +194,20 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error
 	}
 	return
 }
+//构建删除任务计划
+func BuildDeleteJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error) {
 
+	logs.Warn("构建删除任务计划 JobName=",job.Name)
+	
+	//生成任务调度计划对象
+	jobSchedulePlan = &JobSchedulePlan{
+		Job:      job,
+		Expr:     nil,
+		NextTime: time.Now(),
+		Del:true,
+	}
+	return
+}
 //构造执行状态信息
 func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobExecuteInfo) {
 	jobExecuteInfo = &JobExecuteInfo{

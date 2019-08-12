@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 )
@@ -21,7 +20,7 @@ func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, valu
 	//反序列化成功
 	jobName := common.ExtractJobName(jobKey)
 	//构建一个更新event事件
-	logs.Warn("推送保存任务的事件到Scheduler", jobName)
+	logs.Warn("推送 [ 保存 ] 任务的事件到Scheduler ,JobName = ", jobName)
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 	//推送给scheduler
 	this.PushToScheduler(jobEvent)
@@ -34,7 +33,7 @@ func (this *CustomJobEventReceiver) PushDeleteEventToScheduler(jobKey string) {
 	job := &common.Job{
 		Name: jobName,
 	}
-	fmt.Println("推送删除任务的事件到Scheduler", jobName)
+	logs.Warn("推送 [ 删除 ] 任务的事件到Scheduler ,JobName = ", jobName)
 	//构建一个删除event
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 	//推送给scheduler
@@ -44,7 +43,7 @@ func (this *CustomJobEventReceiver) PushDeleteEventToScheduler(jobKey string) {
 //推送强杀任务的事件到Scheduler
 func (this *CustomJobEventReceiver) PushKillEventToScheduler(jobKey string) {
 	jobName := common.ExtractKillerName(jobKey)
-	fmt.Println("推送强杀任务的事件到Scheduler", jobName)
+	logs.Warn("推送 [ 强杀 ] 任务的事件到Scheduler ,JobName = ", jobName)
 	job := &common.Job{Name: jobName}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	//推送给scheduler

@@ -58,7 +58,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		//从最小堆中取出堆顶元素
 		mini_plan_extract = j.ExtractMin()
 		elapsed = time.Since(now) //更新遍历时间
-		logs.Warn("取出最小堆顶元素,任务名称= [ ",mini_plan_extract.Job.Name," ]",mini_plan_extract.Job.CronExpr, " ],执行时间= [ ", mini_plan_extract.NextTime," ],并重新进行 shiftDown,耗时: ", elapsed)
+		logs.Warn("取出最小堆顶元素,任务名称= [ ",mini_plan_extract.Job.Name," ] , CronExpr = [",mini_plan_extract.Job.CronExpr, " ],执行时间= [ ", mini_plan_extract.NextTime," ],并重新进行 shiftDown,耗时: ", elapsed)
 		if mini_plan_extract.Del{
 			logs.Error("已标识为DEL,跳过,不执行任务")
 			return 0,nil
@@ -75,6 +75,7 @@ func (j *JobPlanMinHeap) ExtractEarliest(tryStartJob func(jobPlan *common.JobSch
 		mini_plan_extract.NextTime = mini_plan_extract.Expr.Next(now)
 		logs.Warn("执行完成,更新下次执行时间的值 ,下次执行时间=", mini_plan_extract.NextTime)
 
+		//再次插入数据
 		if err := j.InsertAgain(&mini_plan_extract); err != nil {
 			logs.Error(err)
 			return 0, err
@@ -196,14 +197,13 @@ func (mh *JobPlanMinHeap) Remove(key string,newItem *common.Job) error {
 		logs.Error(err_str)
 		return errors.New(err_str)
 	}
-	jobSchedulePlan, err := common.BuildJobSchedulePlan(newItem)
+	jobSchedulePlan, err := common.BuildDeleteJobSchedulePlan(newItem)
 	if err != nil {
 		return err
 	}
-	jobSchedulePlan.Del = true
 
 	i := int64(index)
-	logs.Error("Remove & change",key,"的Job"," ,index=",i)
+	logs.Warn("Remove & change",key,"的Job"," ,index=",i)
 	mh.jobPlanTable[i]= *jobSchedulePlan
 	delete(mh.jobPlanMap,key)
 	return nil

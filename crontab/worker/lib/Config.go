@@ -19,6 +19,8 @@ type Config struct {
 
 	JobLogBatchSize     int `json:"jobLogBatchSize"`
 	JobLogCommitTimeout int `json:"jobLogCommitTimeout"`
+
+	LogsProduction bool `json:"LogsProduction"`
 }
 
 var (

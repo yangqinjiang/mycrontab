@@ -26,6 +26,19 @@ func InitEnv() {
 	//线程数==CPU数量
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
+func initLogs(env_production bool) {
+
+	// do something here to set environment depending on an environment variable
+	// or command-line flag
+	if env_production {
+		//日志打印 代码调用的路径 
+		logs.SetReportCaller(true)
+	  logs.SetFormatter(&logs.JSONFormatter{})
+	} else {
+	  // The TextFormatter is default, you don't actually have to do this.
+	  logs.SetFormatter(&logs.TextFormatter{})
+	}
+  }
 func main() {
 	logs.Info("Crontab Worker Running...")
 	var (
@@ -45,6 +58,8 @@ func main() {
 		goto ERR
 	}
 	logs.Info("加载配置")
+
+	initLogs(lib.G_config.LogsProduction)
 	//-----------------------日志记录器的实现------------------------
 	//var testWriter *lib.ConsoleLog
 	// testWriter = &lib.ConsoleLog{}
@@ -119,20 +134,11 @@ func main() {
 		goto ERR
 	}
 	logs.Info("init Registr")
-	logs.Info("start worker  done")
+	logs.Info("start worker ,DONE")
+	logs.Info("running....")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)
-		// //构建跟时间有关的key,Name
-		// rand := strconv.FormatInt(time.Now().Unix(),10)
-		// //模拟事件
-
-		// job := &common.Job{Name: "JobName"+rand,CronExpr:"* * * * * *",Command:"echo 1;",ShellName:"sh"}
-		// b ,err := common.PackJob(job)
-		// if err != nil{
-		// 	logs.Error("序列化job 出错")
-		// }
-		// jobEventPusher.PushSaveEventToScheduler("JobKey"+rand,b);
 	}
 	return
 

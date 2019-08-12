@@ -19,3 +19,8 @@
 - worker任务失败向etcd的/cron/warn/{job}标识告警
 - leader master 监听/cron/warn目录变化
 - etcd 性能不高, 可用队列优化
+
+# 热更新
+- https://segmentfault.com/a/1190000008487440
+# 程序配置方案
+- https://github.com/koding/multiconfig

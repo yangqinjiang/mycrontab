@@ -3,6 +3,8 @@
 # BUILD 阶段
 #
 FROM golang:1.12.7 AS build
+LABEL maintainer="yangqinjiang@qq.com"
+# 设置go mod的必要条件
 ENV GOPROXY https://goproxy.io
 ENV GO111MODULE on
 
@@ -22,7 +24,7 @@ RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o mas
 # 生产阶段
 #
 FROM scratch AS prod
-
+LABEL maintainer="yangqinjiang@qq.com"
 # 从build阶段拷贝二进制文件
 COPY --from=build /go/release/master /
 # master的web文件

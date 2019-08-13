@@ -3,7 +3,6 @@
 # BUILD 阶段
 #
 FROM golang:1.12.7 AS build
-RUN echo "BUILD MASTER ..." 
 ENV GOPROXY https://goproxy.io
 ENV GO111MODULE on
 
@@ -12,7 +11,7 @@ WORKDIR /go/cache
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-
+# 编译目录
 WORKDIR /go/release
 
 COPY . .
@@ -30,8 +29,9 @@ COPY --from=build /go/release/master /
 COPY --from=build /go/release/webroot /webroot/
 # master的配置文件
 COPY --from=build /go/release/config/master.json /config/master.json
+# 开放端口
 EXPOSE 8080
-CMD ["./master"]
+ENTRYPOINT ["./master"]
 
 
 

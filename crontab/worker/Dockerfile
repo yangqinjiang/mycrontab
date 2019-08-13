@@ -2,8 +2,7 @@
 #
 # BUILD 阶段
 #
-FROM golang:1.12.7 AS build
-RUN echo "BUILD WORKER ..." 
+FROM golang:1.12.7 AS build 
 ENV GOPROXY https://goproxy.io
 ENV GO111MODULE on
 
@@ -12,7 +11,7 @@ WORKDIR /go/cache
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-
+# 编译目录
 WORKDIR /go/release
 
 COPY . .
@@ -30,7 +29,7 @@ FROM busybox AS prod
 COPY --from=build /go/release/worker /
 # master的配置文件
 COPY --from=build /go/release/config/worker.json /config/worker.json
-CMD ["./worker"]
+ENTRYPOINT ["./worker"]
 
 
 

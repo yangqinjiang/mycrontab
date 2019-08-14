@@ -4,6 +4,8 @@
 ###  goproxy 是一个开源项目，当用户请求一个依赖库时，如果它发现本地没有这份代码就会自动请求源，然后缓存到本地，用户就可以从 goproxy.io 请求到数据
 
 `export GOPROXY=https://goproxy.io`
+# 单元测试
+- go test -v *_test.go
 ``
 ## 
 # 课后练习

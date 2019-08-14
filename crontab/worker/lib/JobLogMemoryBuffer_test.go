@@ -1,7 +1,6 @@
 package lib
 
 import (
-	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"strconv"
@@ -9,20 +8,7 @@ import (
 	"time"
 )
 var config_file_path = "../config/worker.json"
-type TestWriter struct {
-}
 
-func (w *TestWriter) Write(jobLog *common.LogBatch) (n int, err error) {
-
-	logs.Debug("call TestWriter ,print =>") //只打印 p的长度
-	for _,log := range jobLog.Logs{
-		if nil != log{
-			logs.Debug("one log.Name=",log.JobName)
-		}
-
-	}
-	return 0, nil
-}
 
 func TestLogSinkOnlyPrint(t *testing.T) {
 
@@ -33,7 +19,7 @@ func TestLogSinkOnlyPrint(t *testing.T) {
 	lib.G_config.JobLogCommitTimeout = 10000 //日志自动提交超时
 	lib.G_config.JobLogBatchSize = 10        //日志批次大小
 
-	w := &TestWriter{}
+	w := &lib.TestWriter{}
 
 	err = lib.InitJobLogMemoryBuffer(w)
 	if err != nil {
@@ -78,7 +64,7 @@ func TestLogSinkOnlyPrintWithTimeout(t *testing.T) {
 	lib.G_config.JobLogCommitTimeout = 1 //日志自动提交超时
 	lib.G_config.JobLogBatchSize = 100        //日志批次大小
 
-	w := &TestWriter{}
+	w := &lib.TestWriter{}
 
 	err = lib.InitJobLogMemoryBuffer(w)
 	if err != nil {

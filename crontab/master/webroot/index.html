@@ -243,6 +243,7 @@
                 data: {name: jobName},
                 success: function(resp) {
                     if (resp.errno != 0) {
+                        mytip(resp.msg)
                         return
                     }
                     // 遍历日志
@@ -278,6 +279,7 @@
                 dataType: 'json',
                 success: function(resp) {
                     if (resp.errno != 0) {
+                        mytip(resp.msg)
                         return
                     }
 
@@ -338,7 +340,7 @@
             $('#alert_box').append(html);
             setTimeout(function(){
                 $('#alert').alert('close');
-            },3000)
+            },5000)
         }
         
     })

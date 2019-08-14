@@ -142,7 +142,7 @@ func (scheduler *Scheduler) scheduleLoop() {
 			scheduler.handleJobEvent(jobEvent)
 		case <-scheduleTimer.C: //最近的任务到期了
 		case jobResult = <-scheduler.jobResultChan: //监听任务执行结果
-			scheduler.handleJobResult(jobResult)
+			scheduler.HandleJobResult(jobResult)
 		}
 		//调度一次任务
 		scheduleAfter = scheduler.TrySchedule()
@@ -179,7 +179,7 @@ func (scheduler *Scheduler) Loop() {
 }
 
 //处理任务结果,记录任务的执行时间,计划时间,输出结果
-func (scheduler *Scheduler) handleJobResult(result *common.JobExecuteResult)(n int, err error) {
+func (scheduler *Scheduler) HandleJobResult(result *common.JobExecuteResult)(n int, err error) {
 
 	if nil == result || result.ExecuteInfo == nil {
 		return 0, errors.New("日志对象不能为空")

@@ -85,7 +85,7 @@ type CmdReceiver struct {
 }
 
 func (r *CmdReceiver) action(info *common.JobExecuteInfo) ([]byte, error) {
-	if r == nil {
+	if r == nil || nil == info || nil == info.Job{
 		return nil,nil
 	}
 	if strings.Contains(runtime.GOOS,"windows"){

@@ -142,8 +142,7 @@ func main() {
 		goto ERR
 	}
 	logs.Info("启动服务注册管理器 [完成]")
-	logs.Info("启动worker[完成]")
-	logs.Info("running....")
+	logs.Info("启动worker[完成] \nrunning....")
 	//正常退出
 	for {
 		time.Sleep(1 * time.Second)

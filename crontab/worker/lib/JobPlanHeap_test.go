@@ -4,6 +4,7 @@ import (
 	"fmt"
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"os"
 	"strconv"
 	"testing"
@@ -13,8 +14,8 @@ import (
 func TestJobPlanHeapIsJobPlanManager(t *testing.T)  {
 
 	SIZE := 1
-	j := NewJobPlanMinHeap(SIZE)
-	_,ok:=interface{}(j).(JobPlanManager)
+	j := lib.NewJobPlanMinHeap(SIZE)
+	_,ok:=interface{}(j).(lib.JobPlanManager)
 
 	if !ok{
 		t.Fatal("JobPlanMinHeap没有实现JobPlanManager接口的方法")
@@ -23,7 +24,7 @@ func TestJobPlanHeapIsJobPlanManager(t *testing.T)  {
 func TestJobPlanHeap(t *testing.T) {
 
 	SIZE := 3
-	j := NewJobPlanMinHeap(SIZE)
+	j := lib.NewJobPlanMinHeap(SIZE)
 	job_1 := &common.Job{Name: "job_1", CronExpr: "* * * * *"}
 	j_1_0, _ := common.BuildJobSchedulePlan(job_1)
 	j_1_1, _ := common.BuildJobSchedulePlan(job_1)
@@ -52,13 +53,13 @@ func TestJobPlanHeap(t *testing.T) {
 
 //找出最早的
 func TestHeapSort(t *testing.T) {
-	logs.SetLevel(logs.LevelInfo)
+	
 	// 简单的性能测试,如下:
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
 	SIZE := 1*10000 //
-	j := NewJobPlanMinHeap(SIZE)
+	j := lib.NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
 		i_60 := i
@@ -107,13 +108,13 @@ func TestHeapSort(t *testing.T) {
 }
 //找出最早的
 func TestExtractEarliestHeap(t *testing.T) {
-	logs.SetLevel(logs.LevelInfo)
+	
 	// 简单的性能测试,如下:
 	// 1w, 耗时 0 ms.
 	// 10w, 耗时 0 ms.
 	// 100w, 耗时 0 ms.
 	SIZE := 60
-	j := NewJobPlanMinHeap(SIZE)
+	j := lib.NewJobPlanMinHeap(SIZE)
 	for i := 1; i <= SIZE; i++ {
 		istr := strconv.Itoa(i)
 		i_60 := i

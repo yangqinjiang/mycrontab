@@ -12,8 +12,8 @@ import (
 )
 
 //mongodb的日志模型
+//实现 JobLoger 接口方法
 type MongoDbLog struct {
-	JobLoger //实现Log接口方法
 	client        *mongo.Client
 	logCollection *mongo.Collection
 }

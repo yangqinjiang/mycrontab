@@ -24,6 +24,7 @@ type Config struct {
 	MongodbUsername       string `json:"mongodbUsername"`
 	MongodbPassword       string `json:"mongodbPassword"`
 
+	LogsProduction bool `json:"LogsProduction"`
 }
 
 var (

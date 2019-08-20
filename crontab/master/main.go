@@ -1,23 +1,24 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"os"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/master/lib"
+	"os"
 	"runtime"
 	"time"
-	"errors"
-	logs "github.com/sirupsen/logrus"
 )
 
 var (
 	help     bool
 	quiet    bool   //日志安静模式,不输出info级别的日志
 	confFile string //配置文件的路径
-	version bool
+	version  bool
 )
 var version_str string = "1.0"
+
 //解析命令行参数
 //TODO:在 goland IDE里启动,需要替换working directory
 ///src/github.com/yangqinjiang/mycrontab/crontab/master/main
@@ -25,16 +26,17 @@ func initFlag() {
 	flag.BoolVar(&help, "h", false, "help ,github code source => https://github.com/yangqinjiang/mycrontab ")
 	flag.StringVar(&confFile, "c", "./config/master.json", "指定master.json")
 	flag.BoolVar(&quiet, "q", false, "quiet,Only log the warning severity or above.")
-	flag.BoolVar(&version,"v",false,"Print version infomation and quit")
+	flag.BoolVar(&version, "v", false, "Print version infomation and quit")
 	flag.Usage = usage
 }
 func usage() {
 	fmt.Fprintf(os.Stderr, fmt.Sprintf(`mycrontab master version: %s
 		Usage: master [-hqv] [-c filename]
 		Options:
-		`,version_str))
+		`, version_str))
 	flag.PrintDefaults()
 }
+
 //初始化logs的配置
 func initLogs(env_production bool) {
 
@@ -64,7 +66,7 @@ func init() {
 	initFlag()
 }
 func main() {
-	
+
 	flag.Parse()
 	//版本信息
 	if version {
@@ -77,11 +79,9 @@ func main() {
 		return
 	}
 
-	
 	var (
 		err error
 	)
- 
 
 	//初始化线程
 	InitEnv()
@@ -100,7 +100,7 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	if nil == lib.G_jobMgr{
+	if nil == lib.G_jobMgr {
 		err = errors.New(" 连接 ETCD 数据库出错,初始化 LogMgr实例 [失败]")
 		goto ERR
 	}
@@ -110,7 +110,7 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	if nil == lib.G_jobMgr{
+	if nil == lib.G_jobMgr {
 		err = errors.New(" 连接  mongodb 数据库出错,初始化 G_logMgr 实例 [失败]")
 		goto ERR
 	}
@@ -120,12 +120,11 @@ func main() {
 	if err != nil {
 		goto ERR
 	}
-	if nil == lib.G_workerMgr{
+	if nil == lib.G_workerMgr {
 		err = errors.New(" 连接 ETCD 数据库出错,初始化 G_workerMgr 实例 [失败]")
 		goto ERR
 	}
 	logs.Info("启动服务发现[成功]")
-
 
 	//启动Api Http服务
 	err = lib.InitApiServer()
@@ -141,9 +140,9 @@ func main() {
 
 	//异常退出
 ERR:
-	logs.Error("Master启动失败:"+err.Error())
+	logs.Error("Master启动失败:" + err.Error())
 }
 
-func showVersion(){
-	fmt.Println(fmt.Sprintf("v%s",version_str))
+func showVersion() {
+	fmt.Println(fmt.Sprintf("v%s", version_str))
 }

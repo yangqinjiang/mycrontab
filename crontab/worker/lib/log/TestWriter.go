@@ -1,4 +1,4 @@
-package lib
+package log
 import (
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"

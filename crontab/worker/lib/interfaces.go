@@ -5,10 +5,7 @@ import (
 	"time"
 )
 
-//日志接口类
-type JobLoger interface {
-	Write(jobLog *common.LogBatch) (n int, err error)
-}
+
 //任务的执行器 的接口
 type JobExecuter interface {
 	//设置调用者

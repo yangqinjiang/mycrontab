@@ -1,4 +1,4 @@
-package lib
+package log
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"
+	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 )
 
 //任务的执行日志 缓冲器
@@ -36,7 +37,7 @@ func InitJobLogMemoryBuffer(jobLoger JobLoger) (err error) {
 		}
 
 		//批处理容量必须大于 0
-		if G_config.JobLogBatchSize > 0 {
+		if config.G_config.JobLogBatchSize > 0 {
 			logs.Info("启动一个日志处理协程...")
 			//处理协程
 			go G_jobLogMemoryBuffer.writeLoop()
@@ -105,7 +106,7 @@ func (logSink *JobLogMemoryBuffer) writeLoop() {
 				//让这个批次超时自动提交(给1s的时间)
 				logs.Debug("start commitTimer")
 				//闭包的作用,防止logBatch被修改后,影响到chan
-				commitTimer = time.AfterFunc(time.Duration(G_config.JobLogCommitTimeout)*time.Millisecond,
+				commitTimer = time.AfterFunc(time.Duration(config.G_config.JobLogCommitTimeout)*time.Millisecond,
 					func(batch *common.LogBatch) func() {
 						return func() {
 							logs.Info("让这个批次超时自动提交")
@@ -118,8 +119,8 @@ func (logSink *JobLogMemoryBuffer) writeLoop() {
 			//把新日志append到当前批次中
 			logBatch.Logs = append(logBatch.Logs, log)
 			//如果批次满了,就发送
-			if len(logBatch.Logs) >= G_config.JobLogBatchSize {
-				logs.Info("如果批次满了,就发送 len=",len(logBatch.Logs)," , JobLogBatchSize= ",G_config.JobLogBatchSize)
+			if len(logBatch.Logs) >= config.G_config.JobLogBatchSize {
+				logs.Info("如果批次满了,就发送 len=",len(logBatch.Logs)," , JobLogBatchSize= ",config.G_config.JobLogBatchSize)
 				//发送日志
 				logSink.saveLogs(logBatch)
 				//清空

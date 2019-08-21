@@ -10,7 +10,8 @@ import (
 	// "strconv"
 	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"time"
-	// "github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib/config"
+	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 )
 
 var (
@@ -90,35 +91,35 @@ func main() {
 	InitEnv()
 
 	//加载配置
-	err = lib.InitConfig(confFile)
+	err = config.InitConfig(confFile)
 	if err != nil {
 		goto ERR
 	}
 
-	initLogs(lib.G_config.LogsProduction)
+	initLogs(config.G_config.LogsProduction)
 
 	
 	logs.Info("Crontab Worker Starting...")
 	logs.Info("加载配置")
 	//-----------------------日志记录器的实现------------------------
-	//var testWriter *lib.ConsoleLog
-	// testWriter = &lib.ConsoleLog{}
+	//var testWriter *log.ConsoleLog
+	// testWriter = &log.ConsoleLog{}
 	// logs.Info("init ConsoleLog")
 	//err = lib.InitJobLogMemoryBuffer(testWriter)
 
 	//使用 MongoDB 储存任务产生的日志
-	err = lib.InitMongoDbLog()
+	err = log.InitMongoDbLog()
 	if err != nil {
 		goto ERR
 	}
-	if nil == lib.G_MongoDbLog {
+	if nil == log.G_MongoDbLog {
 		err = errors.New("初始化mongodb的实例  数据库连接 [失败]")
 		goto ERR
 	} else {
 		logs.Info("初始化mongodb的实例,储存任务产生的日志 [完成]")
 	}
 
-	err = lib.InitJobLogMemoryBuffer(lib.G_MongoDbLog)
+	err = log.InitJobLogMemoryBuffer(log.G_MongoDbLog)
 	if err != nil {
 		goto ERR
 	}
@@ -164,7 +165,7 @@ func main() {
 	// 再[同步或JobExecuter异步执行],最后 使用[JobLogger记录任务的执行日志]
 
 	//设置任务调度器的日志记录器
-	lib.G_scheduler.SetJobLogBuffer(lib.G_jobLogMemoryBuffer)
+	lib.G_scheduler.SetJobLogBuffer(log.G_jobLogMemoryBuffer)
 	//设置任务调度器的任务执行器  -> goroutine的任务执行器
 	lib.G_scheduler.SetJobExecuter(lib.G_GoroutineExecutor)
 	//设置 任务调度时间  的计算算法

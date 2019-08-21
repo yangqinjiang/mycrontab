@@ -4,6 +4,7 @@ import (
 	"errors"
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 	"sync"
 	"time"
 )
@@ -17,14 +18,14 @@ type Scheduler struct {
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
-	jobLogger         JobLoger                          //日志记录器
+	jobLogger         log.JobLoger                          //日志记录器
 	jobExecuter       JobExecuter                       //任务执行器
 	jobPlanManager    JobPlanManager                    //任务调度计划表内存里的任务计划管理
 }
 /**
 日志记录器
 */
-func (scheduler *Scheduler) SetJobLogBuffer(jobLogger JobLoger) {
+func (scheduler *Scheduler) SetJobLogBuffer(jobLogger log.JobLoger) {
 	scheduler.jobLogger = jobLogger
 }
 /**
@@ -212,7 +213,7 @@ var (
 )
 
 //初始化调度器
-func InitScheduler(jobLogger JobLoger) (err error, scheduler *Scheduler) {
+func InitScheduler(jobLogger log.JobLoger) (err error, scheduler *Scheduler) {
 	oncescheduler.Do(func() {
 
 		G_scheduler = &Scheduler{

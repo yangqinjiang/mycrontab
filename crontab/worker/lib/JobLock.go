@@ -3,12 +3,13 @@ package lib
 import (
 	"context"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 	"github.com/coreos/etcd/clientv3"
 )
 //将JobLock抽象接口
 //分布式锁(TXN事务)
 type JobLock struct {
-	JobLoger
+	log.JobLoger
 	Kv         clientv3.KV
 	Lease      clientv3.Lease
 	JobName    string             //任务名

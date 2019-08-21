@@ -8,6 +8,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"sync"
 	"time"
+	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 )
 /**
 	etcd任务管理器, 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
@@ -35,12 +36,12 @@ func InitEtcdJobMgr() (err error) {
 	logs.Info("Before onceJobMgr")
 	onceJobMgr.Do(func() {
 
-		logs.Info("EtcdEndpoints = ",G_config.EtcdEndpoints)
+		logs.Info("EtcdEndpoints = ",config.G_config.EtcdEndpoints)
 		//初始化配置
 		//读取配置文件
 		config := clientv3.Config{
-			Endpoints:   G_config.EtcdEndpoints, //集群地址
-			DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Microsecond,
+			Endpoints:   config.G_config.EtcdEndpoints, //集群地址
+			DialTimeout: time.Duration(config.G_config.EtcdDialTimeout) * time.Microsecond,
 		}
 		//建立连接
 		client, err := clientv3.New(config)

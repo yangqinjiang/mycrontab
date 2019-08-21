@@ -1,4 +1,4 @@
-package lib
+package log
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 )
 
 //mongodb的日志模型
@@ -59,13 +60,13 @@ func InitMongoDbLog() (err error) {
 		//建立mongodb链接
 		if client, err = mongo.Connect(context.TODO(),
 			//连接超时
-			options.Client().SetConnectTimeout(time.Duration(G_config.MongodbConnectTimeout)*time.Millisecond),
+			options.Client().SetConnectTimeout(time.Duration(config.G_config.MongodbConnectTimeout)*time.Millisecond),
 			//连接URL
-			options.Client().ApplyURI(G_config.MongodbUri),
+			options.Client().ApplyURI(config.G_config.MongodbUri),
 			//连接认证的用户信息
 			options.Client().SetAuth(options.Credential{
-				Username:G_config.MongodbUsername,
-				Password:G_config.MongodbPassword})); err != nil {
+				Username:config.G_config.MongodbUsername,
+				Password:config.G_config.MongodbPassword})); err != nil {
 					logs.Error("连接mongoDb失败")
 			return
 		}

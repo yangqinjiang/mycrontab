@@ -1,9 +1,9 @@
-package lib
+package job_plan
 
 import (
 	"fmt"
-	logs "github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
+	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"time"
 )
@@ -13,8 +13,8 @@ import (
 //  https://github.com/liuyubobobo/Play-with-Algorithms/blob/master/04-Heap/Course%20Code%20(C%2B%2B)/Optional-2-Min-Heap/MinHeap.h
 //任务计划表 ,使用最小堆实现
 type JobPlanMinHeap struct {
-	JobPlanManager  //任务计划管理
-	indexes []int64 // index=>时间
+	JobPlanManager //任务计划管理
+	indexes []int64    // index=>时间
 	//keyIndex       map[string]int
 	count          int
 	capacity       int
@@ -216,14 +216,14 @@ func (e *JobPlanMinHeap) ExtractMin() common.JobSchedulePlan {
 	 //读取第一个,是最小值
 	plan := e.jobPlanTable[e.indexes[1]]
 
-	//logs.Debug("ExtractMin: Before Swap ,Job.Name= ", plan.Job.Name)
+	//logs.Debug("ExtractMin: Before Swap ,Job.Name= ", job_plan.Job.Name)
 
 	//交换最后和第一个元素,使它不是最小堆
 	e.swap(&e.indexes[1], &e.indexes[e.count])
 	e.count--
 	//进行 shiftDown
 	e.shiftDown(1)
-	//delete(e.jobPlanMap, plan.Job.Name) //删除key_value
+	//delete(e.jobPlanMap, job_plan.Job.Name) //删除key_value
 	//返回第一个
 	logs.Debug("ExtractMin: After Swap ,e.indexes=", e.indexes," ,e.count=",e.count)
 	return plan

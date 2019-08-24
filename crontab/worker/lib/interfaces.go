@@ -1,28 +1,19 @@
 package lib
 
 import (
+	"github.com/yangqinjiang/mycrontab/worker/lib/command"
 	"github.com/yangqinjiang/mycrontab/worker/common"
-	"time"
 )
 
 
 //任务的执行器 的接口
 type JobExecuter interface {
 	//设置调用者
-	SetCommand(c Command)
+	SetCommand(c command.Command)
 	//执行
 	Exec(info *common.JobExecuteInfo)(error)
 }
-//任务计划 接口
-type JobPlanManager interface {
-	Size() int
-	//插入一个任务
-	Insert(info *common.JobSchedulePlan)(error)
-	// 使用key 删除一个任务
-	Remove(key string,newItem  *common.Job)(error)
-	//找出最早
-	ExtractEarliest(func (jobPlan *common.JobSchedulePlan)(err error)) (time.Duration,error)
-}
+
 //推送任务事件的管理者
 type JobEventReceiver interface {
 	PushEvent(jobEvent *common.JobEvent)

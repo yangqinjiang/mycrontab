@@ -1,4 +1,4 @@
-package lib
+package job_plan
 
 import (
 	logs "github.com/sirupsen/logrus"
@@ -8,7 +8,7 @@ import (
 
 //任务计划表 ,使用最小堆实现
 type JobPlanArray struct {
-	JobPlanManager                                  //任务计划管理
+	JobPlanManager                                //任务计划管理
 	jobPlanTable   map[string]*common.JobSchedulePlan //任务调度计划表内存里的任务计划表,
 }
 

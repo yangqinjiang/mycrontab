@@ -12,6 +12,7 @@ import (
 	"time"
 	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 	"github.com/yangqinjiang/mycrontab/worker/lib/log"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_plan"
 )
 
 var (
@@ -169,7 +170,7 @@ func main() {
 	//设置任务调度器的任务执行器  -> goroutine的任务执行器
 	lib.G_scheduler.SetJobExecuter(lib.G_GoroutineExecutor)
 	//设置 任务调度时间  的计算算法
-	lib.G_scheduler.SetJobPlanManager(lib.NewJobPlanMinHeap(10000))
+	lib.G_scheduler.SetJobPlanManager(job_plan.NewJobPlanMinHeap(10000))
 	//启动任务调度器的 调度协程,监听任务变化事件,任务执行结果
 	lib.G_scheduler.Loop()
 	logs.Info("启动任务调度器的 调度协程 [完成]")

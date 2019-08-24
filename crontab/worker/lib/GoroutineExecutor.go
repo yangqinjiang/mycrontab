@@ -1,20 +1,20 @@
 package lib
 
 import (
-	
+	"errors"
+	"github.com/yangqinjiang/mycrontab/worker/lib/command"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"math/rand"
 	"sync"
 	"time"
-	"errors"
 )
 
 //Goroutine任务执行器,也是命令的调用者
 type GoroutineExecutor struct {
 	JobExecuter								// 实现任务执行的接口
-	jobLock JobLocker						//任务锁锁对象
+	jobLock           JobLocker						//任务锁锁对象
 	jobResultReceiver JobResultReceiver   //任务执行结果的接收器
-	command Command
+	command           command.Command
 }
 
 var (
@@ -23,7 +23,7 @@ var (
 )
 
 //设置命令对象
-func (t *GoroutineExecutor)SetCommand(c Command)  {
+func (t *GoroutineExecutor)SetCommand(c command.Command)  {
 	t.command = c
 }
 //设置任务执行结果的接收器
@@ -65,7 +65,7 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 			result.StartTime = time.Now()
 			info.PrintStatus()
 			//生成一个命令对象
-			executor.SetCommand(CommandFactory(info.Job.ShellName))
+			executor.SetCommand(command.CommandFactory(info.Job.ShellName))
 			//执行命令对象
 			if( nil != executor.command){
 				output, err =  executor.command.Execute(info)

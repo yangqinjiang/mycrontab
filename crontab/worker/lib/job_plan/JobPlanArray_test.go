@@ -1,8 +1,7 @@
-package lib
+package job_plan
 
 import (
 	"github.com/yangqinjiang/mycrontab/worker/common"
-	"github.com/yangqinjiang/mycrontab/worker/lib"
 	"strconv"
 	"testing"
 	"time"
@@ -10,15 +9,15 @@ import (
 func TestJobPlanArrayIsJobPlanManager(t *testing.T)  {
 
 
-	j := lib.NewJobPlanArray()
-	_,ok:=interface{}(j).(lib.JobPlanManager)
+	j := NewJobPlanArray()
+	_,ok:=interface{}(j).(JobPlanManager)
 
 	if !ok{
 		t.Fatal("JobPlanArray没有实现JobPlanManager接口的方法")
 	}
 }
 func TestJobPlanArray(t *testing.T) {
-	j  := lib.NewJobPlanArray()
+	j  := NewJobPlanArray()
 	job_1 := &common.Job{Name: "job_1",CronExpr:"* * * * *"}
 	j_1_0,_ := common.BuildJobSchedulePlan(job_1)
 	j_1_1,_ := common.BuildJobSchedulePlan(job_1)
@@ -51,7 +50,7 @@ func TestJobPlanArray(t *testing.T) {
 }
 //找出最早的
 func TestExtractEarliest(t *testing.T) {
-	j  := lib.NewJobPlanArray()
+	j  := NewJobPlanArray()
 	// 简单的性能测试,如下:
 	// 1w, 耗时 1 ms~2 ms.
 	// 10w, 耗时 10 ms~20 ms.

@@ -1,12 +1,13 @@
 package lib
 
 import (
+	"errors"
 	logs "github.com/sirupsen/logrus"
-	"testing"
+	"github.com/yangqinjiang/mycrontab/worker/lib/command"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"github.com/yangqinjiang/mycrontab/worker/lib"
+	"testing"
 	"time"
-	"errors"
 )
 
 //初始化任务调度器
@@ -111,7 +112,7 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 	lib.G_scheduler.SetJobExecuter(invoker)
 
 	//FAIL,cron表达式是错误的,
-	job_fail := &common.Job{Name: "TryStartJob",CronExpr:"error cron",Command:"echo hello"}
+	job_fail := &common.Job{Name: "TryStartJob",CronExpr:"error cron", command.Command:"echo hello"}
 	jobEvent_fail := common.BuildJobEvent(common.JOB_EVENT_KILL, job_fail)
 
 	if _, err = common.BuildJobSchedulePlan(jobEvent_fail.Job); err == nil {
@@ -119,7 +120,7 @@ func TestScheduler_TryStartJobSuccess(t *testing.T) {
 		return
 	}
 	//cron表达式是正确的
-	job := &common.Job{Name: "TryStartJobSuccess",CronExpr:"* * * * * *",Command:"echo hello"}
+	job := &common.Job{Name: "TryStartJobSuccess",CronExpr:"* * * * * *", command.Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	var jobSchedulePlan *common.JobSchedulePlan
 	if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {
@@ -184,7 +185,7 @@ func TestScheduler_TryStartJobFail(t *testing.T) {
 		t.Fatal("参数jobPlan为空",err)
 	}
 	//cron表达式是正确的
-	job := &common.Job{Name: "TryStartJobFail",CronExpr:"* * * * * *",Command:"echo hello"}
+	job := &common.Job{Name: "TryStartJobFail",CronExpr:"* * * * * *", command.Command:"echo hello"}
 	jobEvent := common.BuildJobEvent(common.JOB_EVENT_KILL, job)
 	var jobSchedulePlan *common.JobSchedulePlan
 	if jobSchedulePlan, err = common.BuildJobSchedulePlan(jobEvent.Job); err != nil {

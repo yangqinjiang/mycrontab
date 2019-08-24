@@ -3,6 +3,7 @@ package lib
 import (
 	"errors"
 	logs "github.com/sirupsen/logrus"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_plan"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 	"sync"
@@ -20,7 +21,7 @@ type Scheduler struct {
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
 	jobLogger         log.JobLoger                          //日志记录器
 	jobExecuter       JobExecuter                       //任务执行器
-	jobPlanManager    JobPlanManager                    //任务调度计划表内存里的任务计划管理
+	jobPlanManager    job_plan.JobPlanManager                    //任务调度计划表内存里的任务计划管理
 }
 /**
 日志记录器
@@ -38,7 +39,7 @@ func (scheduler *Scheduler) SetJobExecuter(jobExecuter JobExecuter) {
 /**
 设置任务计划的管理者
 */
-func (scheduler *Scheduler) SetJobPlanManager(jobPlanManager JobPlanManager) {
+func (scheduler *Scheduler) SetJobPlanManager(jobPlanManager job_plan.JobPlanManager) {
 	scheduler.jobPlanManager = jobPlanManager
 }
 

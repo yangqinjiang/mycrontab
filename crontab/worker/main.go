@@ -5,6 +5,9 @@ import (
 	"flag"
 	"fmt"
 	logs "github.com/sirupsen/logrus"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_build"
+	"github.com/yangqinjiang/mycrontab/worker/lib/scheduler"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_mgr"
 	"os"
 	"runtime"
 	// "strconv"
@@ -13,6 +16,7 @@ import (
 	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 	"github.com/yangqinjiang/mycrontab/worker/lib/job_plan"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_executor"
 )
 
 var (
@@ -85,7 +89,7 @@ func main() {
 
 	var (
 		err            error
-		jobEventPusher *lib.CustomJobEventReceiver
+		jobEventPusher *job_build.CustomJobEventReceiver
 	)
 
 	//初始化线程
@@ -127,18 +131,18 @@ func main() {
 	logs.Info("init JobLogMemoryBuffer")
 
 	//启动异步任务执行器
-	err = lib.InitGoroutineExecutor()
+	err = job_executor.InitGoroutineExecutor()
 	if err != nil {
 		goto ERR
 	}
 	logs.Info("启动异步任务执行器 InitGoroutineExecutor")
 	//------------------任务管理器-----------------------------
 	//启动  任务管理器 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
-	err = lib.InitEtcdJobMgr()
+	err = job_mgr.InitEtcdJobMgr()
 	if err != nil {
 		goto ERR
 	}
-	if nil == lib.G_EtcdJobMgr {
+	if nil == job_mgr.G_EtcdJobMgr {
 		err = errors.New("Etcd 任务存储 数据库连接 [失败]")
 		goto ERR
 	} else {
@@ -146,33 +150,33 @@ func main() {
 	}
 
 	//启动任务调度器
-	err, _ = lib.InitScheduler(nil)
+	err, _ = scheduler.InitScheduler(nil)
 	if err != nil {
 		goto ERR
 	}
 
 	//设置 推送任务事件 的操作者
-	jobEventPusher = &lib.CustomJobEventReceiver{JobEventReceiver: lib.G_scheduler}
+	jobEventPusher = &job_build.CustomJobEventReceiver{JobEventReceiver: scheduler.G_scheduler}
 	if nil == jobEventPusher {
 		err = errors.New("jobEventPusher nil pointer")
 		goto ERR
 	}
 
-	lib.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
+	job_mgr.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
 	//设置任务执行结果的接收器
-	lib.G_GoroutineExecutor.SetJobResultReceiver(lib.G_scheduler)
+	job_executor.G_GoroutineExecutor.SetJobResultReceiver(scheduler.G_scheduler)
 	//----------------------任务调度器--------------------------
 	// 使用 [ 任务管理器推给的任务数据 ],经过 [JobPlanManager调度时间排序] 得到最先应该执行的任务,
 	// 再[同步或JobExecuter异步执行],最后 使用[JobLogger记录任务的执行日志]
 
 	//设置任务调度器的日志记录器
-	lib.G_scheduler.SetJobLogBuffer(log.G_jobLogMemoryBuffer)
+	scheduler.G_scheduler.SetJobLogBuffer(log.G_jobLogMemoryBuffer)
 	//设置任务调度器的任务执行器  -> goroutine的任务执行器
-	lib.G_scheduler.SetJobExecuter(lib.G_GoroutineExecutor)
+	scheduler.G_scheduler.SetJobExecuter(job_executor.G_GoroutineExecutor)
 	//设置 任务调度时间  的计算算法
-	lib.G_scheduler.SetJobPlanManager(job_plan.NewJobPlanMinHeap(10000))
+	scheduler.G_scheduler.SetJobPlanManager(job_plan.NewJobPlanMinHeap(10000))
 	//启动任务调度器的 调度协程,监听任务变化事件,任务执行结果
-	lib.G_scheduler.Loop()
+	scheduler.G_scheduler.Loop()
 	logs.Info("启动任务调度器的 调度协程 [完成]")
 
 	//---------------------服务注册管理器------------------

@@ -1,4 +1,4 @@
-package lib
+package job_build
 
 import (
 	logs "github.com/sirupsen/logrus"

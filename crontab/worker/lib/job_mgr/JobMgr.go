@@ -1,14 +1,15 @@
-package lib
+package job_mgr
 
 import (
-	logs "github.com/sirupsen/logrus"
 	"context"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	logs "github.com/sirupsen/logrus"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_build"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 	"sync"
 	"time"
-	"github.com/yangqinjiang/mycrontab/worker/lib/config"
 )
 /**
 	etcd任务管理器, 监听 etcd 的事件, 组装任务数据, 并推给 scheduler任务调度器
@@ -18,7 +19,7 @@ type EtcdJobMgr struct {
 	kv               clientv3.KV
 	lease            clientv3.Lease
 	watcher          clientv3.Watcher
-	jobEventPusher   *CustomJobEventReceiver //推送任务事件的类
+	jobEventPusher   *job_build.CustomJobEventReceiver //推送任务事件的类
 }
 
 var (
@@ -27,7 +28,7 @@ var (
 	onceJobMgr   sync.Once
 )
 
-func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *CustomJobEventReceiver) {
+func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *job_build.CustomJobEventReceiver) {
 	jobMgr.jobEventPusher = jobEventPusher
 }
 

@@ -1,10 +1,12 @@
-package lib
+package scheduler
 
 import (
 	"errors"
 	logs "github.com/sirupsen/logrus"
-	"github.com/yangqinjiang/mycrontab/worker/lib/job_plan"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_executor"
 	"github.com/yangqinjiang/mycrontab/worker/common"
+	//"github.com/yangqinjiang/mycrontab/worker/lib/job_build"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_plan"
 	"github.com/yangqinjiang/mycrontab/worker/lib/log"
 	"sync"
 	"time"
@@ -14,14 +16,14 @@ import (
 调度器,遍历所有任务列表, 找出最近一个要过期的任务
 */
 type Scheduler struct {
-	JobEventReceiver                                    //推送任务事件的接口
-	JobResultReceiver									//推送任务执行结果 	的接口
+	//job_build.JobEventReceiver                                //推送任务事件的接口
+	//job_build.JobResultReceiver                               //推送任务执行结果 	的接口
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表
-	jobLogger         log.JobLoger                          //日志记录器
-	jobExecuter       JobExecuter                       //任务执行器
-	jobPlanManager    job_plan.JobPlanManager                    //任务调度计划表内存里的任务计划管理
+	jobLogger         log.JobLoger                      //日志记录器
+	jobExecuter       job_executor.JobExecuter          //任务执行器
+	jobPlanManager    job_plan.JobPlanManager           //任务调度计划表内存里的任务计划管理
 }
 /**
 日志记录器
@@ -32,7 +34,7 @@ func (scheduler *Scheduler) SetJobLogBuffer(jobLogger log.JobLoger) {
 /**
 设置任务的执行器
 */
-func (scheduler *Scheduler) SetJobExecuter(jobExecuter JobExecuter) {
+func (scheduler *Scheduler) SetJobExecuter(jobExecuter job_executor.JobExecuter) {
 	scheduler.jobExecuter = jobExecuter
 }
 

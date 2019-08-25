@@ -1,7 +1,10 @@
-package lib
+package job_executor
 
 import (
 	"errors"
+
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_mgr"
+	"github.com/yangqinjiang/mycrontab/worker/lib/job_build"
 	"github.com/yangqinjiang/mycrontab/worker/lib/command"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 	"math/rand"
@@ -12,8 +15,8 @@ import (
 //Goroutine任务执行器,也是命令的调用者
 type GoroutineExecutor struct {
 	JobExecuter								// 实现任务执行的接口
-	jobLock           JobLocker						//任务锁锁对象
-	jobResultReceiver JobResultReceiver   //任务执行结果的接收器
+	jobLock           job_mgr.JobLocker						//任务锁锁对象
+	jobResultReceiver job_build.JobResultReceiver   //任务执行结果的接收器
 	command           command.Command
 }
 
@@ -27,7 +30,7 @@ func (t *GoroutineExecutor)SetCommand(c command.Command)  {
 	t.command = c
 }
 //设置任务执行结果的接收器
-func (t *GoroutineExecutor)SetJobResultReceiver(jobResultReceiver JobResultReceiver)  {
+func (t *GoroutineExecutor)SetJobResultReceiver(jobResultReceiver job_build.JobResultReceiver)  {
 	t.jobResultReceiver = jobResultReceiver
 }
 //执行一个任务
@@ -48,7 +51,7 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 		}
 
 		//初始化分布式锁
-		executor.jobLock = G_EtcdJobMgr.CreateJobLock(info.Job.Name)
+		executor.jobLock = job_mgr.G_EtcdJobMgr.CreateJobLock(info.Job.Name)
 		//随机睡眠(0~1s),解决抢锁频繁问题
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 

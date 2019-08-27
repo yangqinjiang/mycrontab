@@ -89,7 +89,7 @@ func main() {
 
 	var (
 		err            error
-		jobEventPusher *job_build.CustomJobEventReceiver
+		jobEventPusher *job_build.CustomJobEventPusher
 	)
 
 	//初始化线程
@@ -156,7 +156,7 @@ func main() {
 	}
 
 	//设置 推送任务事件 的操作者
-	jobEventPusher = &job_build.CustomJobEventReceiver{JobEventReceiver: scheduler.G_scheduler}
+	jobEventPusher = &job_build.CustomJobEventPusher{JobEventPusher: scheduler.G_scheduler}
 	if nil == jobEventPusher {
 		err = errors.New("jobEventPusher nil pointer")
 		goto ERR
@@ -164,7 +164,7 @@ func main() {
 
 	job_mgr.G_EtcdJobMgr.SetJobEventPusher(jobEventPusher)
 	//设置任务执行结果的接收器
-	job_executor.G_GoroutineExecutor.SetJobResultReceiver(scheduler.G_scheduler)
+	job_executor.G_GoroutineExecutor.SetJobResultPusher(scheduler.G_scheduler)
 	//----------------------任务调度器--------------------------
 	// 使用 [ 任务管理器推给的任务数据 ],经过 [JobPlanManager调度时间排序] 得到最先应该执行的任务,
 	// 再[同步或JobExecuter异步执行],最后 使用[JobLogger记录任务的执行日志]

@@ -17,7 +17,7 @@ import (
 */
 type Scheduler struct {
 	//job_build.JobEventReceiver                                //推送任务事件的接口
-	//job_build.JobResultReceiver                               //推送任务执行结果 	的接口
+	//job_build.SetJobResultPusher                               //推送任务执行结果 	的接口
 	jobEventChan      chan *common.JobEvent             //etcd任务事件队列
 	jobResultChan     chan *common.JobExecuteResult     //任务执行结果队列
 	jobExecutingTable map[string]*common.JobExecuteInfo //任务执行表

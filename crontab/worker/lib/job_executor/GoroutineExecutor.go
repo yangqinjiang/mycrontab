@@ -16,7 +16,7 @@ import (
 type GoroutineExecutor struct {
 	JobExecuter								// 实现任务执行的接口
 	jobLock           job_mgr.JobLocker						//任务锁锁对象
-	jobResultReceiver job_build.JobResultReceiver   //任务执行结果的接收器
+	jobResultPusher job_build.JobResultPusher   //任务执行结果的接收器
 	command           command.Command
 }
 
@@ -30,8 +30,8 @@ func (t *GoroutineExecutor)SetCommand(c command.Command)  {
 	t.command = c
 }
 //设置任务执行结果的接收器
-func (t *GoroutineExecutor)SetJobResultReceiver(jobResultReceiver job_build.JobResultReceiver)  {
-	t.jobResultReceiver = jobResultReceiver
+func (t *GoroutineExecutor)SetJobResultPusher(jobResultPusher job_build.JobResultPusher)  {
+	t.jobResultPusher = jobResultPusher
 }
 //执行一个任务
 func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error) {
@@ -82,8 +82,8 @@ func (executor *GoroutineExecutor) Exec(info *common.JobExecuteInfo) (err error)
 		}
 		//无论是否抢到锁,都返回
 		//任务执行完成后,把执行的结果返回给scheduler,它会从executingTable删除执行记录
-		if nil != executor.jobResultReceiver{
-			executor.jobResultReceiver.PushResult(result)
+		if nil != executor.jobResultPusher{
+			executor.jobResultPusher.PushResult(result)
 		}
 	}()
 	return

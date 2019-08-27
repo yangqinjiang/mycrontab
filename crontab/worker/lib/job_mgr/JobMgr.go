@@ -19,7 +19,7 @@ type EtcdJobMgr struct {
 	kv               clientv3.KV
 	lease            clientv3.Lease
 	watcher          clientv3.Watcher
-	jobEventPusher   *job_build.CustomJobEventReceiver //推送任务事件的类
+	jobEventPusher   *job_build.CustomJobEventPusher //推送任务事件的类
 }
 
 var (
@@ -28,7 +28,7 @@ var (
 	onceJobMgr   sync.Once
 )
 
-func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *job_build.CustomJobEventReceiver) {
+func (jobMgr *EtcdJobMgr) SetJobEventPusher(jobEventPusher *job_build.CustomJobEventPusher) {
 	jobMgr.jobEventPusher = jobEventPusher
 }
 

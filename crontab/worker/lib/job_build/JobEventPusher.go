@@ -4,13 +4,16 @@ import (
 	logs "github.com/sirupsen/logrus"
 	"github.com/yangqinjiang/mycrontab/worker/common"
 )
-
-type CustomJobEventReceiver struct {
-	JobEventReceiver JobEventReceiver
+//推送任务事件的管理者
+type JobEventPusher interface {
+	PushEvent(jobEvent *common.JobEvent)
+}
+type CustomJobEventPusher struct {
+	JobEventPusher JobEventPusher
 }
 
 //推送保存任务的事件到Scheduler
-func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, value []byte) {
+func (this *CustomJobEventPusher) PushSaveEventToScheduler(jobKey string, value []byte) {
 	logs.Info("推送保存任务的事件到Scheduler,jobKey=",jobKey)
 	var job *common.Job
 	var err error
@@ -27,7 +30,7 @@ func (this *CustomJobEventReceiver) PushSaveEventToScheduler(jobKey string, valu
 }
 
 //推送删除任务的事件到Scheduler
-func (this *CustomJobEventReceiver) PushDeleteEventToScheduler(jobKey string) {
+func (this *CustomJobEventPusher) PushDeleteEventToScheduler(jobKey string) {
 	// Delete /cron/jobs/job10
 	jobName := common.ExtractJobName(jobKey)
 	job := &common.Job{
@@ -41,7 +44,7 @@ func (this *CustomJobEventReceiver) PushDeleteEventToScheduler(jobKey string) {
 }
 
 //推送强杀任务的事件到Scheduler
-func (this *CustomJobEventReceiver) PushKillEventToScheduler(jobKey string) {
+func (this *CustomJobEventPusher) PushKillEventToScheduler(jobKey string) {
 	jobName := common.ExtractKillerName(jobKey)
 	logs.Warn("推送 [ 强杀 ] 任务的事件到Scheduler ,JobName = ", jobName)
 	job := &common.Job{Name: jobName}
@@ -50,10 +53,10 @@ func (this *CustomJobEventReceiver) PushKillEventToScheduler(jobKey string) {
 	this.PushToScheduler(jobEvent)
 }
 //推送给scheduler
-func (this *CustomJobEventReceiver) PushToScheduler(jobEvent *common.JobEvent) {
-	if nil != this.JobEventReceiver {
-		this.JobEventReceiver.PushEvent(jobEvent)
+func (this *CustomJobEventPusher) PushToScheduler(jobEvent *common.JobEvent) {
+	if nil != this.JobEventPusher {
+		this.JobEventPusher.PushEvent(jobEvent)
 	} else {
-		logs.Error("没设置JobEventReceiver对象")
+		logs.Error("没设置JobResultPusher对象")
 	}
 }
